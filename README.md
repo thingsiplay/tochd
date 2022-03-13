@@ -15,4 +15,4 @@ This is a commandline application and has no graphical user interface. The usage
     tochd file1.zip file2.iso
  
 # What is this program for and what are CHD files?
-If you use RetroArch or possibly any emulator that supports CHD files, then you might want to convert your ISO and CUE+BIN files to it. It is a compressed single file format. The helper tool `chdman` from the MAME tools can do that. And often the files are in archives, so they need to be extracted first in a temporary folder. I wanted automate all of this and it started as a simple Bash script, but later on decided to utilize Python.
+If you use RetroArch or possibly any emulator that supports CHD files, then you might want to convert your ISO and CUE+BIN files to it. It is a compressed single file format. The helper tool `chdman` from the MAME tools can do that. And often the files are in archives, so they need to be extracted first in a temporary folder, which `7z` does. No need for manual extraction, this script takes care. I wanted automate all of this and it started as a simple Bash script, but later on decided to utilize Python.
