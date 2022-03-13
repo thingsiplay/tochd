@@ -5,7 +5,7 @@ Convert ISOs and archives into CD CHD for emulation.
 The script was created with Python 3.10 on Linux in mind and may not work on other environments, as it was not tested otherwise. It makes use of pre existing programs that needs to be installed on the system to extract archives and convert the formats: `7z`, `chdman`
 
 # Usage
-This is a commandline application and has no graphical user interface. The usage overall is very simple: give it a filename or multiple files or even a directory and that's it. It will process all given files and all files in a given directory automatically, depending if the file formats are supported. Put the executable `tochd` into a directory that is in your environmental $PATH and just run it from any folder. The CHD files are created in the same folder where the input files are. If the CHD exists already, then it won't create it again.
+This is a commandline application and has no graphical user interface. The usage overall is very simple: give it a filename or multiple files or even a directory and that's it. It will process all given files and all files in a given directory automatically, depending if the file formats are supported. Put the executable `tochd.py` into a directory that is in your environmental $PATH and just run it from any folder. Alternatively rename it to just `tochd` without file extension. The CHD files are created in the same folder where the input files are. If the CHD exists already, then it won't create it again.
 
 ## Examples
     tochd --help
