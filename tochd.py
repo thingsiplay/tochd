@@ -26,7 +26,7 @@ def APP(var=None):
 
 # Test if the path is an iso file.
 def is_iso(path=None):
-    ext = ['iso', 'cue']
+    ext = ['iso', 'cue', 'gdi']
     if path is None:
         return ext
     suffix = path.suffix.lower().lstrip('.')
