@@ -9,6 +9,7 @@ import pathlib
 import os.path
 import random
 import string
+import re
 
 
 def APP(var=None):
@@ -16,7 +17,7 @@ def APP(var=None):
             # Filename of current program.
             'name': fullpath(sys.argv[0]).stem,
             # Program version.
-            'version': '0.1',
+            'version': '0.2',
     }
     if var:
         return META[var]
@@ -60,10 +61,23 @@ def convert(path):
     return
 
 
+def archive_contains_supported_files(path):
+    command = []
+    command.append('7z')
+    command.append('l')
+    command.append('-slt')
+    command.append(path.as_posix())
+    completed = subprocess.run(command, capture_output=True, text=True)
+    ext = '|'.join(is_iso())
+    return re.search(r'Path = .*\.(' + ext + ')', completed.stdout)
+
+
 # Creates a temporary directory to extract the archive into.  From there the
 # actual iso file will be converted into .chd, which then is moved to same
 # folder where the archive is. 
 def convert_archive(path):
+    if not archive_contains_supported_files(path):
+        return
     tempdir = create_tempdir(path)
     command = []
     command.append('7z')
@@ -71,7 +85,12 @@ def convert_archive(path):
     command.append(path.as_posix())
     command.append('-o' + tempdir.name)
     subprocess.run(command)
-    for file in tempdir.iterdir():
+    gdi_files = [*tempdir.glob('*.gdi')]
+    if gdi_files:
+        files = gdi_files
+    else:
+        files = [*tempdir.iterdir()]
+    for file in files:
         if is_iso(file):
             outfile = file.with_suffix('.chd')
             command = []
@@ -198,11 +217,16 @@ def main():
             else:
                 other_files.append(file)
         elif file.is_dir():
-            for file in file.iterdir():
-                if is_iso(file):
-                    iso_files.append(file)
-                else:
+            gdi_files = file.glob('*.gdi')
+            if gdi_files:
+                for file in gdi_files:
                     other_files.append(file)
+            else:
+                for file in file.iterdir():
+                    if is_iso(file):
+                        iso_files.append(file)
+                    else:
+                        other_files.append(file)
     for file in iso_files:
         convert(file)
     for file in other_files:
