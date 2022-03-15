@@ -25,7 +25,23 @@ This is a commandline application and has no graphical user interface. The usage
 
 If you use RetroArch or possibly any emulator that supports CHD files, then you might want to convert your ISO and CUE+BIN files to it. It is a compressed single file format. The helper tool `chdman` from the MAME tools can do that. And often the files are in archives, so they need to be extracted first in a temporary folder, which `7z` does. No need for manual extraction, this script takes care. I wanted automate all of this and it started as a simple Bash script, but later on decided to utilize Python.
 
+# Multithreading support
+
+Normally all files are created one after another, as each process waits before
+it's completion.  If you use the new option `-p` (short for
+`--parallel`), then multiple process are created and execute at the same time.
+This can save a lot of time, depending on your hardware.  However, this
+approach comes with a few drawbacks.
+
+- cancelling the script execution with Ctrl+c in the terminal in example will
+  not clean up any hidden temporary files and folders
+- output of the individual programs are no longer available 
+
 # Changes
+
+## v0.3
+- new: initial support for experimental multithreading, use `-p` option to
+  activate
 
 ## v0.2
 - new: check each archive, only extract files if supported files are found inside
