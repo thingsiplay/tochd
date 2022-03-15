@@ -3,6 +3,7 @@
 import sys
 import atexit
 import argparse
+import multiprocessing
 import subprocess
 import shutil
 import pathlib
@@ -17,7 +18,7 @@ def APP(var=None):
             # Filename of current program.
             'name': fullpath(sys.argv[0]).stem,
             # Program version.
-            'version': '0.2',
+            'version': '0.3',
     }
     if var:
         return META[var]
@@ -51,13 +52,13 @@ def is_archive(path=None):
 
 # Converts the input file, either an iso or an archive, into a .chd file.  It
 # will not process further if the goal file already exists.
-def convert(path):
+def convert(path, capture_output=False):
     if path.with_suffix('.chd').exists():
         return
     if is_iso(path):
-        convert_iso(path)
+        convert_iso(path, capture_output)
     elif is_archive(path):
-        convert_archive(path)
+        convert_archive(path, capture_output)
     return
 
 
@@ -75,16 +76,17 @@ def archive_contains_supported_files(path):
 # Creates a temporary directory to extract the archive into.  From there the
 # actual iso file will be converted into .chd, which then is moved to same
 # folder where the archive is. 
-def convert_archive(path):
+def convert_archive(path, capture_output=False):
     if not archive_contains_supported_files(path):
         return
+    print('Processing: ' + path.as_posix() + '...')
     tempdir = create_tempdir(path)
     command = []
     command.append('7z')
     command.append('e')
     command.append(path.as_posix())
     command.append('-o' + tempdir.name)
-    subprocess.run(command)
+    subprocess.run(command, capture_output=capture_output)
     gdi_files = [*tempdir.glob('*.gdi')]
     if gdi_files:
         files = gdi_files
@@ -100,7 +102,7 @@ def convert_archive(path):
             command.append(file)
             command.append('--output')
             command.append(outfile)
-            subprocess.run(command)
+            subprocess.run(command, capture_output=capture_output)
             outdir = outfile.parent.parent
             shutil.move(outfile, outdir)
     shutil.rmtree(tempdir, ignore_errors=True)
@@ -109,17 +111,18 @@ def convert_archive(path):
 
 # Create the chdman command to convert the actual iso file and rename it to
 # replace the file extension.
-def convert_iso(file):
-    if is_iso(file):
-        outfile = file.with_suffix('.chd')
+def convert_iso(path, capture_output=False):
+    print('Processing: ' + path.as_posix() + '...')
+    if is_iso(path):
+        outfile = path.with_suffix('.chd')
         command = []
         command.append('chdman')
         command.append('createcd')
         command.append('--input')
-        command.append(file)
+        command.append(path)
         command.append('--output')
         command.append(outfile)
-        subprocess.run(command)
+        subprocess.run(command, capture_output=capture_output)
     return
 
 
@@ -178,6 +181,9 @@ def parse_arguments():
             help='show some usage examples and exit')
     parser.add_argument('--list-formats', default=False, action='store_true',
             help='list supported ISO and archive formats and exit')
+    parser.add_argument('-p', '--parallel', default=False, action='store_true',
+            help='activate multiprocessing to convert more than a single file'
+                 ' at the same time')
     return parser.parse_args()
 
 
@@ -210,7 +216,7 @@ def main():
     other_files = []
     for arg in args.file:
         file = fullpath(arg)
-        print(file)
+        # print(file)
         if file.is_file():
             if is_iso(file):
                 iso_files.append(file)
@@ -227,10 +233,27 @@ def main():
                         iso_files.append(file)
                     else:
                         other_files.append(file)
-    for file in iso_files:
-        convert(file)
-    for file in other_files:
-        convert(file)
+    if args.parallel:
+        jobs = []
+        for file in iso_files:
+            process = multiprocessing.Process(target=convert, args=(file, True,))
+            jobs.append(process)
+            process.start()
+        for job in jobs:
+            job.join()
+
+        jobs = []
+        for file in other_files:
+            process = multiprocessing.Process(target=convert, args=(file, True,))
+            jobs.append(process)
+            process.start()
+        for job in jobs:
+            job.join()
+    else:
+        for file in iso_files:
+            convert(file)
+        for file in other_files:
+            convert(file)
     return 0
 
 
