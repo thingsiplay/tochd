@@ -46,3 +46,6 @@ approach comes with a few drawbacks.
 ## v0.2
 - new: check each archive, only extract files if supported files are found inside
 - new: if an archive or directory contains .gdi files, then ignore all other files and only process .gdi files
+
+## v0.1
+- initial release
