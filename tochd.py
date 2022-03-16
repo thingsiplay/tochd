@@ -18,7 +18,7 @@ def APP(var=None):
             # Filename of current program.
             'name': fullpath(sys.argv[0]).stem,
             # Program version.
-            'version': '0.3',
+            'version': '0.4',
     }
     if var:
         return META[var]
