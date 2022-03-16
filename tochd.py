@@ -50,18 +50,6 @@ def is_archive(path=None):
         return False
 
 
-# Converts the input file, either an iso or an archive, into a .chd file.  It
-# will not process further if the goal file already exists.
-def convert(path, capture_output=False):
-    if path.with_suffix('.chd').exists():
-        return
-    if is_iso(path):
-        convert_iso(path, capture_output)
-    elif is_archive(path):
-        convert_archive(path, capture_output)
-    return
-
-
 def archive_contains_supported_files(path):
     command = []
     command.append('7z')
@@ -73,57 +61,102 @@ def archive_contains_supported_files(path):
     return re.search(r'Path = .*\.(' + ext + ')', completed.stdout)
 
 
+# Converts the input file, either an iso or an archive, into a .chd file.  It
+# will not process further if the goal file already exists.
+def convert(path, capture_output=False, chdprocessors=0):
+    if path.with_suffix('.chd').exists():
+        return
+    if is_iso(path):
+        convert_iso(path, capture_output, chdprocessors)
+    elif is_archive(path):
+        convert_archive(path, capture_output, chdprocessors)
+    return
+
+
 # Creates a temporary directory to extract the archive into.  From there the
 # actual iso file will be converted into .chd, which then is moved to same
 # folder where the archive is. 
-def convert_archive(path, capture_output=False):
+def convert_archive(path, capture_output=False, chdprocessors=0):
     if not archive_contains_supported_files(path):
         return
-    print('Processing: ' + path.as_posix() + '...')
+    print('Processing: ' + path.as_posix() + ' ...')
     tempdir = create_tempdir(path)
     command = []
     command.append('7z')
     command.append('e')
+    if capture_output:
+        command.append('-y')
     command.append(path.as_posix())
-    command.append('-o' + tempdir.name)
+    command.append('-o' + tempdir.as_posix())
     subprocess.run(command, capture_output=capture_output)
     gdi_files = [*tempdir.glob('*.gdi')]
     if gdi_files:
         files = gdi_files
     else:
         files = [*tempdir.iterdir()]
+    outdir = None
     for file in files:
         if is_iso(file):
             outfile = file.with_suffix('.chd')
             command = []
             command.append('chdman')
             command.append('createcd')
+            if chdprocessors:
+                command.append('--numprocessors')
+                command.append(str(chdprocessors))
             command.append('--input')
-            command.append(file)
+            command.append(file.as_posix())
             command.append('--output')
-            command.append(outfile)
+            command.append(outfile.as_posix())
             subprocess.run(command, capture_output=capture_output)
             outdir = outfile.parent.parent
-            shutil.move(outfile, outdir)
+            shutil.move(outfile.as_posix(), outdir.as_posix())
     shutil.rmtree(tempdir, ignore_errors=True)
+    if outdir:
+        createdfile = pathlib.Path(outdir.as_posix() + '/' + outfile.name)
+        if createdfile.exists():
+            print('Finished: ' + createdfile.as_posix())
     return
 
 
 # Create the chdman command to convert the actual iso file and rename it to
 # replace the file extension.
-def convert_iso(path, capture_output=False):
-    print('Processing: ' + path.as_posix() + '...')
+def convert_iso(path, capture_output=False, chdprocessors=0):
+    print('Processing: ' + path.as_posix() + ' ...')
+    outfile = None
     if is_iso(path):
         outfile = path.with_suffix('.chd')
         command = []
         command.append('chdman')
         command.append('createcd')
+        if chdprocessors:
+            print(chdprocessors)
+            command.append('--numprocessors')
+            command.append(str(chdprocessors))
         command.append('--input')
-        command.append(path)
+        command.append(path.as_posix())
         command.append('--output')
-        command.append(outfile)
+        command.append(outfile.as_posix())
         subprocess.run(command, capture_output=capture_output)
+    if outfile and outfile.exists():
+        print('Finished: ' + createdfile.as_posix())
     return
+
+
+# Create multiple processes, one thread for each file.
+# threads: how many threads time can be processed at the same time
+# chdprocessors: how many cores should chdman utilize
+def parallel_convert(files, threads, chdprocessors):
+        jobs = []
+        if threads == 0:
+            pool = multiprocessing.Pool()
+        else:
+            pool = multiprocessing.Pool(processes=threads)
+        for file in files:
+            pool.apply_async(convert, (file, True, chdprocessors,))
+        pool.close()
+        pool.join()
+        return 0
 
 
 # Create a temporary folder in same directory as the input file.  It has the
@@ -184,6 +217,15 @@ def parse_arguments():
     parser.add_argument('-p', '--parallel', default=False, action='store_true',
             help='activate multiprocessing to convert more than a single file'
                  ' at the same time')
+    parser.add_argument('-t', '--threads', metavar='NUM', default=2, type=int,
+            choices=range(0, os.cpu_count()),
+            help='max number of threads to processes at the same time when'
+            'parallel option is active, 0 is count of all cores, defaults to 2')
+    parser.add_argument('-c', '--chdprocessors', metavar='NUM', default=0,
+            type=int, choices=range(0, os.cpu_count()),
+            help='limit the number of processors to utilize during compression'
+            ' of the CHD file with chdman, 0 is count of all cores,'
+            ' defaults to 0')
     return parser.parse_args()
 
 
@@ -216,14 +258,13 @@ def main():
     other_files = []
     for arg in args.file:
         file = fullpath(arg)
-        # print(file)
         if file.is_file():
             if is_iso(file):
                 iso_files.append(file)
             else:
                 other_files.append(file)
         elif file.is_dir():
-            gdi_files = file.glob('*.gdi')
+            gdi_files = list(file.glob('*.gdi'))
             if gdi_files:
                 for file in gdi_files:
                     other_files.append(file)
@@ -233,22 +274,10 @@ def main():
                         iso_files.append(file)
                     else:
                         other_files.append(file)
-    if args.parallel:
-        jobs = []
-        for file in iso_files:
-            process = multiprocessing.Process(target=convert, args=(file, True,))
-            jobs.append(process)
-            process.start()
-        for job in jobs:
-            job.join()
 
-        jobs = []
-        for file in other_files:
-            process = multiprocessing.Process(target=convert, args=(file, True,))
-            jobs.append(process)
-            process.start()
-        for job in jobs:
-            job.join()
+    if args.parallel:
+        parallel_convert(iso_files, args.threads, args.chdprocessors)
+        parallel_convert(other_files, args.threads, args.chdprocessors)
     else:
         for file in iso_files:
             convert(file)
