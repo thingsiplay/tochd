@@ -18,7 +18,7 @@ def APP(var=None):
             # Filename of current program.
             'name': fullpath(sys.argv[0]).stem,
             # Program version.
-            'version': '0.4',
+            'version': '0.5',
     }
     if var:
         return META[var]
@@ -49,10 +49,10 @@ def is_archive(path=None):
     else:
         return False
 
-
+# Checks if the archive file contains has any files that can be converted.
 def archive_contains_supported_files(path):
     command = []
-    command.append('7z')
+    command.append(shutil.which('7z'))
     command.append('l')
     command.append('-slt')
     command.append(path.as_posix())
@@ -63,26 +63,37 @@ def archive_contains_supported_files(path):
 
 # Converts the input file, either an iso or an archive, into a .chd file.  It
 # will not process further if the goal file already exists.
-def convert(path, capture_output=False, chdprocessors=0):
-    if path.with_suffix('.chd').exists():
-        return
+def convert(path, destdir, index, capture_output=False, chdprocessors=0,
+        rename=False):
+    if destdir:
+        if pathlib.Path(destdir / path.name).with_suffix('.chd').exists():
+            return
+    else:
+        if path.with_suffix('.chd').exists():
+            return
     if is_iso(path):
-        convert_iso(path, capture_output, chdprocessors)
+        convert_iso(path, destdir, index, capture_output, chdprocessors)
     elif is_archive(path):
-        convert_archive(path, capture_output, chdprocessors)
+        convert_archive(path, destdir, index, capture_output, chdprocessors,
+                rename)
     return
 
 
 # Creates a temporary directory to extract the archive into.  From there the
 # actual iso file will be converted into .chd, which then is moved to same
 # folder where the archive is. 
-def convert_archive(path, capture_output=False, chdprocessors=0):
+def convert_archive(path, destdir, index, capture_output=False,
+        chdprocessors=0, rename=False):
+
     if not archive_contains_supported_files(path):
         return
-    print('Processing: ' + path.as_posix() + ' ...')
-    tempdir = create_tempdir(path)
+    print(f'Processing {index}: ' + path.as_posix() + ' ...')
+    if destdir:
+        tempdir = create_tempdir(pathlib.Path(destdir / path.name))
+    else:
+        tempdir = create_tempdir(path)
     command = []
-    command.append('7z')
+    command.append(shutil.which('7z'))
     command.append('e')
     if capture_output:
         command.append('-y')
@@ -99,7 +110,7 @@ def convert_archive(path, capture_output=False, chdprocessors=0):
         if is_iso(file):
             outfile = file.with_suffix('.chd')
             command = []
-            command.append('chdman')
+            command.append(shutil.which('chdman'))
             command.append('createcd')
             if chdprocessors:
                 command.append('--numprocessors')
@@ -110,24 +121,29 @@ def convert_archive(path, capture_output=False, chdprocessors=0):
             command.append(outfile.as_posix())
             subprocess.run(command, capture_output=capture_output)
             outdir = outfile.parent.parent
-            shutil.move(outfile.as_posix(), outdir.as_posix())
+            if rename:
+                createdfile = pathlib.Path(outdir / path.name).with_suffix('.chd')
+                createdfile.unlink(missing_ok=True)
+                shutil.move(outfile.as_posix(), createdfile.as_posix())
+            else:
+                createdfile = pathlib.Path(outdir.as_posix() + '/' + outfile.name)
+                createdfile.unlink(missing_ok=True)
+                shutil.move(outfile.as_posix(), createdfile.as_posix())
     shutil.rmtree(tempdir, ignore_errors=True)
-    if outdir:
-        createdfile = pathlib.Path(outdir.as_posix() + '/' + outfile.name)
-        if createdfile.exists():
-            print('Finished: ' + createdfile.as_posix())
+    if outdir and createdfile.exists():
+        print(f'Finished {index}: ' + createdfile.as_posix())
     return
 
 
 # Create the chdman command to convert the actual iso file and rename it to
 # replace the file extension.
-def convert_iso(path, capture_output=False, chdprocessors=0):
-    print('Processing: ' + path.as_posix() + ' ...')
+def convert_iso(path, destdir, index, capture_output=False, chdprocessors=0):
+    print(f'Processing {index}: ' + path.as_posix() + ' ...')
     outfile = None
     if is_iso(path):
         outfile = path.with_suffix('.chd')
         command = []
-        command.append('chdman')
+        command.append(shutil.which('chdman'))
         command.append('createcd')
         if chdprocessors:
             print(chdprocessors)
@@ -136,27 +152,33 @@ def convert_iso(path, capture_output=False, chdprocessors=0):
         command.append('--input')
         command.append(path.as_posix())
         command.append('--output')
+        if destdir:
+            outfile = pathlib.Path(destdir.as_posix() + '/' + outfile.name)
         command.append(outfile.as_posix())
+        outfile.unlink(missing_ok=True)
         subprocess.run(command, capture_output=capture_output)
     if outfile and outfile.exists():
-        print('Finished: ' + createdfile.as_posix())
+        print(f'Finished {index}: ' + outfile.as_posix())
     return
 
 
 # Create multiple processes, one thread for each file.
 # threads: how many threads time can be processed at the same time
 # chdprocessors: how many cores should chdman utilize
-def parallel_convert(files, threads, chdprocessors):
-        jobs = []
-        if threads == 0:
-            pool = multiprocessing.Pool()
-        else:
-            pool = multiprocessing.Pool(processes=threads)
-        for file in files:
-            pool.apply_async(convert, (file, True, chdprocessors,))
-        pool.close()
-        pool.join()
-        return 0
+def parallel_convert(files, destdir, startindex, threads, chdprocessors,
+        rename):
+    jobs = []
+    if threads == 0:
+        pool = multiprocessing.Pool()
+    else:
+        pool = multiprocessing.Pool(processes=threads)
+    for index, file in enumerate(files, startindex):
+        startindex = index + 1
+        pool.apply_async(convert, (file, destdir, index, True,
+            chdprocessors, rename,))
+    pool.close()
+    pool.join()
+    return startindex
 
 
 # Create a temporary folder in same directory as the input file.  It has the
@@ -204,28 +226,39 @@ def check_requirements():
 def parse_arguments():
     parser = argparse.ArgumentParser(
             description='Convert ISOs and archives into CD CHD for emulation.',
-            epilog='Copyright © 2022 Tuncay D.')
+            epilog='Copyright © 2022 Tuncay D.'
+            ' <https://github.com/thingsiplay/tochd>')
     parser.add_argument('file', nargs='*', default=[],
             help='input multiple files or folders with ISOs or archives,'
-                 ' all files from a given folder are processed')
+            ' all supported files from a given folder are processed')
     parser.add_argument('--version', default=False, action='store_true',
             help='print version and exit')
     parser.add_argument('--examples', default=False, action='store_true',
             help='show some usage examples and exit')
     parser.add_argument('--list-formats', default=False, action='store_true',
             help='list supported ISO and archive formats and exit')
+    parser.add_argument('--list-apps', default=False, action='store_true',
+            help='list path of all found programs and exit')
     parser.add_argument('-p', '--parallel', default=False, action='store_true',
-            help='activate multiprocessing to convert more than a single file'
-                 ' at the same time')
+            help='activate multithreading to convert multiple files at the'
+            ' same time, set number of threads with option "-t"')
     parser.add_argument('-t', '--threads', metavar='NUM', default=2, type=int,
             choices=range(0, os.cpu_count()),
-            help='max number of threads to processes at the same time when'
-            'parallel option is active, 0 is count of all cores, defaults to 2')
+            help='max number of process threads to start when parallel option'
+            ' is active, 0 is count of all cores'
+            f' (available: {os.cpu_count()}), defaults to 2')
     parser.add_argument('-c', '--chdprocessors', metavar='NUM', default=0,
             type=int, choices=range(0, os.cpu_count()),
             help='limit the number of processors to utilize during compression'
-            ' of the CHD file with chdman, 0 is count of all cores,'
-            ' defaults to 0')
+            ' of the CHD file with chdman, 0 is count of all cores (available:'
+            f' {os.cpu_count()}), defaults to 0')
+    parser.add_argument('-d', '--output-dir', metavar='DIR', default=None,
+            help='destination path to an existing folder, for creating'
+            ' temporary and .chd files in, defaults to each input files'
+            ' original directory')
+    parser.add_argument('-r', '--rename', default=False, action='store_true',
+            help='name created .chd files to match their archive filenames its'
+            ' based on, only applicable when extracting from archives')
     return parser.parse_args()
 
 
@@ -238,18 +271,33 @@ def main():
         return 0
     elif check_requirements():
         return 1
+    elif args.list_apps:
+        print('Python:', sys.executable)
+        print('7z:', shutil.which('7z'))
+        print('chdman:', shutil.which('chdman'))
+        return 0
     elif args.list_formats:
         print('Supported ISO formats: ' + ', '.join(is_iso()) + '\n'
               'Supported archive formats: ' + ', '.join(is_archive()) + '')
         return 0
     elif args.examples or not args.file:
-        print('Usage:'
-               f'\n    {APP("name")} --help'
-               f'\n    {APP("name")} .'
-               f'\n    {APP("name")} ~/Downloads/new_isos'
-               f'\n    {APP("name")} *.7z'
-               f'\n    {APP("name")} file1.zip file2.iso')
+        print('Usage Examples:'
+                '\n'
+               f'\n    $ {APP("name")} --help'
+               f'\n    $ {APP("name")} .'
+               f'\n    $ {APP("name")} -p "~/Downloads/new_isos" "new_cuebins"'
+               f'\n    $ {APP("name")} -pt4 -r *.7z'
+               f'\n    $ {APP("name")} -d "~/roms/psx" file1.zip file2.iso')
         return 0
+
+    if args.output_dir:
+        output_dir = fullpath(args.output_dir)
+        if not output_dir.exists() or not output_dir.is_dir():
+            print('output-dir must point to an existing folder:', output_dir)
+            print('Program terminates.')
+            return 2
+    else:
+        output_dir = None
 
     # First collect the iso files from all directories and arguments.  Then
     # collect all remaining files, in general archives.  This way an archive
@@ -276,13 +324,18 @@ def main():
                         other_files.append(file)
 
     if args.parallel:
-        parallel_convert(iso_files, args.threads, args.chdprocessors)
-        parallel_convert(other_files, args.threads, args.chdprocessors)
+        startindex = 1
+        startindex = parallel_convert(iso_files, output_dir, startindex,
+                args.threads, args.chdprocessors, args.rename)
+        startindex = parallel_convert(other_files, output_dir, startindex,
+                args.threads, args.chdprocessors, args.rename)
     else:
-        for file in iso_files:
-            convert(file)
-        for file in other_files:
-            convert(file)
+        startindex = 1
+        for index, file in enumerate(iso_files, startindex):
+            startindex = index + 1
+            convert(file, output_dir, index, rename=args.rename)
+        for index, file in enumerate(other_files, startindex):
+            convert(file, output_dir, index, rename=args.rename)
     return 0
 
 
