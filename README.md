@@ -1,74 +1,116 @@
 # tochd
 
-Convert ISOs and archives into CD CHD for emulation.
+Convert game ISO and archives to CD CHD for emulation.
+
+- Author: Tuncay D.
+- Project: https://github.com/thingsiplay/tochd
+- Update Notes: [CHANGES](CHANGES.md) 
+- License: [MIT License](LICENSE)
 
 # What is this program for and what are CHD files?
 
-If you use RetroArch or possibly any emulator that supports CHD files, then you might want to convert your ISO and CUE+BIN files to it. It is a compressed single file format. The helper tool `chdman` from the MAME tools can do that. And often the files are in archives, so they need to be extracted first in a temporary folder, which `7z` does. No need for manual extraction, this script takes care. I wanted automate all of this and it started as a simple Bash script, but later on decided to utilize Python.
+Automation script written in Python as a frontend to `7z` and `chdman` for
+converting CD formats into CD CHD.
+
+When you are playing CD based games on RetroArch or possibly on any emulator
+which supports CHD files, then you might want to convert your ISO and CUE+BIN
+or GDI files into the CHD format. It has the advantage of having good
+compression and producing a single file for each CD. This saves a lot of space
+and makes organization easier.
+
+To achieve this, the separate program `chdman` from the MAME tools is invoked,
+which introduced the CHD format in the first place. Often you need to extract
+those various CD formats from archives such as .7z or .zip files too. The
+program `7z` is used to extract those files, before handing them over for
+conversion.
 
 # Requirements
 
-The script was created with Python 3.10 on Linux in mind and may not work on other environments, as it was not tested otherwise. It makes use of pre existing programs that needs to be installed on the system to extract archives and convert the formats. 
+The script is written in **Python 3.10** on Linux in mind and may not work on other
+environments. It was not tested or reported otherwise. At least two external
+applications are essential and required to run the script:
 
-* The executable filenames are: `7z` `chdman`
-* I have installed following packages in Manjaro which install the above executables. It is possible that the packages are named differently for your distribution: `p7zip` `mame-tools`
+```
+7z
+chdman
+```
 
-# Usage
+My operating system is Manjaro and the programs can be found in installing
+following packages:
 
-This is a commandline application and has no graphical user interface. The usage overall is very simple: give it a filename or multiple files or even a directory and that's it. It will process all given files and all files in a given directory automatically, depending if the file formats are supported. Put the executable `tochd.py` into a directory that is in your environmental $PATH and just run it from any folder. Alternatively rename it to just `tochd` without file extension. The CHD files are created in the same folder where the input files are. If the CHD exists already, then it won't create it again.
+```
+pamac install p7zip mame-tools
+```
 
-## Usage Examples
+## Installation
 
-    $ tochd --help
-    $ tochd .
-    $ tochd -p "~/Downloads/new_isos" "new_cuebins"
-    $ tochd -pt4 -r *.7z
-    $ tochd -d "~/roms/psx" file1.zip file2.iso
-    
-# Multiprocessing support
+Just copy or move the file "tochd.py" in a directory that is in the systems
+`$PATH` and give it the executable bit. Optionally rename it to "tochd". Now
+you should be able to run the script from any directory by command 
+`tochd --help` in example.
 
-Normally all files are processed sequential, only one after another.  Use the `-p` option (short for `--parallel`) to activate multiprocessing.  This enables the creation of threads to extract and convert multiple files at the same time. This can save a lot of time, depending on the input data and your hardware.  At default only 2 threads are created at the same time, because chdman uses up all cores at default.  Use `-t` option (short for `--threads`) with a number to specify how many threads should be created.
+# Usage 
 
-## However, multiprocessing has some drawbacks here:
+This is a commandline application and has no graphical user interface. The
+usage is simple: pass over one or multiple filenames or possibly directory
+paths and that's it. All given files and all files from any given directory are
+processed automatically, provided the formats are supported. Such a command
+could look like `tochd .` to lookup all files in current directory. Or
+`tochd -p Downloads/*.7z` to activate multithreading and looking for all ".7z"
+files in directory "Downloads". The CD CHD files are created in their original
+directories, but a destination path can be specified with `-d` .
 
-- output of individual processes from 7z and chdman are not available anymore, as they would overlap on the stdout
-- consequently no user input can be done and the process would stuck forever, so at least for 7z the option `-y` (assume Yes on all queries) is used, this can lead to unwanted overwriting of same filenames from the extracted archive
-- cancelling the script execution with Ctrl+c in the terminal in example will no longer clean up any hidden temporary folders, but it is cleaned up if thread terminates successfully
+At default `Ctrl+c` in the terminal will abort current job and start next one.
+Temporary folders and files should be removed, but it can't hurt to check
+manually for confirmation. Temporary folders are hidden starting with a dot in
+name.
 
-# Additional quirks and notes
+## Examples
 
-- **Important**: Since v0.2 or v0.3 was a bug present that created the temporary folder in current directory, instead of the archives original directory. This means you could have a lot of hidden temporary folders with files in them on your drive. So please check for hidden folders. This bug is fixed.
+```
+$ tochd --help
+$ tochd .
+$ tochd ~/Downloads
+$ tochd -q -- *
+$ tochd -pf ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'
+$ tochd -d ~/converted -- *.7z > tochd.log
+$ ls -1 | tochd -
+```
 
-- The script checks if destination file already exists, to avoid recreation and overwriting existing .chd files.  But this won't work for files extracted from archives, if their filenames differ from those of the base archives. So it will be recreated every time.  The option `-r` will ensure that the created .chd has the same name as the archive.
+## Multiprocessing support
 
-# Changes
+At default all files are processed sequential, only one at a time. Use option
+`-p` (short for `--parallel`) to activate multithreading with 2 threads. This
+enables the processing of multiple jobs at the same time. Set number of max
+threads with option `-t` (short for `--threads`).
 
-## v0.5
+### Drawbacks with multiprocessing / parallel option
 
-- new: option `-d` to specify output directory for the temporary folder and final .chd file, if specified then all new files are created in this directory
-- new: option `-r` to rename .chd files created from archives to match their archive filenames
-- changed: added job index number to each "Processing" and "Finished" messages, useful if input and output paths differ or parallel option `-p` is active 
-- new: option `--list-apps` will list path of all found programs used by tochd
-- new: projects Github link added to the bottom of `--help` output
+- output of invoked processes from `7z` and `chdman` cannot be provided anymore,
+  as they would have been overlapping on the terminal
+- consequently no user input is possible, as the process would wait and stuck
+  forever; so the script tries to automate all input, especially `7z` with
+  option `-y` (assume Yes on all queries), normally this is no problem but
+  could in certain circumstances lead to unwanted overwriting of same filenames
+  from an archive
+- only job messages with number and path are printed to stdout
 
-## v0.4
+# Additional notes, workarounds and quirks
 
-- new: option `-t` to specify the max number of threads for multiprocessing
-- changed: defaults to 2 threads if option `-p` is used without `-t`
-- changed: automatically use option `-y` on 7z process when multiprocessing with `-p` is active, useful not to wait on user input
-- new: option `-c` to limit the number of processors to utilize when compressing with chdman, indipendet from multiprocessing threads
-- fix: did not extract archives properly in specific situations
-- fix: if input was a directory, then the content was ignored, now all files in a directory are processed
+This program is still beta software. Watch out for unfinished .chd files and
+undeleted hidden temporary folders, especially when cancelling jobs or
+forcefully terminating the script while working. These files and folders can
+take up a huge amount of space! They are hidden and start with a dot "." in
+their name, followed by the archives original name and random characters.
 
-## v0.3
+Make sure to use the option double dash `--` if any given filename starts with
+a dash "-", as it would otherwise be interpreted as an option. Alternatively
+enclose each filename or path in quotes or use stdin for filenames, because
+nothing from stdin is interpreted as options.
 
-- new: initial support for experimental multithreading, use `-p` option to activate
-
-## v0.2
-
-- new: check each archive, only extract files if supported files are found inside
-- new: if an archive or directory contains .gdi files, then ignore all other files and only process .gdi files
-
-## v0.1
-
-- initial release
+Some archives contain multiple folders, each with ISO files of same name. These
+are usually intended to copy and overwrite files in a main folder as a meaning
+of patching. However, the script has no understanding and knowledge about this
+and would try to convert each .iso file on it's own. As a workaround all .iso
+files in the archive are ignored when a sheet type such as CUE or GDI files are
+found.
