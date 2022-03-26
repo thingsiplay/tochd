@@ -2,6 +2,13 @@
 
 Update history for **tochd**.
 
+## v0.7 - March 26, 2022
+
+- changed: when multithreading with option `-p`, the stdout and statistics from
+  invoked `7z` and `chdman` commands are no longer hidden anymore, only the
+  progress bar and stderr stream are hidden, use option `-q` to supress any
+  output from these commands (how it worked previously)
+
 ## v0.6 - March 25, 2022 - Complete rewrite
 
 - new implementation of entire script by rewriting from ground up, additional

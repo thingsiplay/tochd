@@ -14,9 +14,9 @@ converting CD formats into CD CHD.
 
 When you are playing CD based games on RetroArch or possibly on any emulator
 which supports CHD files, then you might want to convert your ISO and CUE+BIN
-or GDI files into the CHD format. It has the advantage of having good
-compression and producing a single file for each CD. This saves a lot of space
-and makes organization easier.
+or GDI files into the CHD format. It has the advantage good compression and
+produces a single file for each CD. This saves a lot of space and makes
+organization easier.
 
 To achieve this, the separate program `chdman` from the MAME tools is invoked,
 which introduced the CHD format in the first place. Often you need to extract
@@ -26,9 +26,9 @@ conversion.
 
 # Requirements
 
-The script is written in **Python 3.10** on Linux in mind and may not work on other
-environments. It was not tested or reported otherwise. At least two external
-applications are essential and required to run the script:
+The script is written in **Python 3.10** and with **Linux** in mind and may
+not work on other environments. It was not tested or reported otherwise. At
+least two external applications are essential and required to run the script:
 
 ```
 7z
@@ -72,7 +72,7 @@ $ tochd --help
 $ tochd .
 $ tochd ~/Downloads
 $ tochd -q -- *
-$ tochd -pf ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'
+$ tochd -pfq ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'
 $ tochd -d ~/converted -- *.7z > tochd.log
 $ ls -1 | tochd -
 ```
@@ -86,14 +86,12 @@ threads with option `-t` (short for `--threads`).
 
 ### Drawbacks with multiprocessing / parallel option
 
-- output of invoked processes from `7z` and `chdman` cannot be provided anymore,
-  as they would have been overlapping on the terminal
-- consequently no user input is possible, as the process would wait and stuck
-  forever; so the script tries to automate all input, especially `7z` with
-  option `-y` (assume Yes on all queries), normally this is no problem but
-  could in certain circumstances lead to unwanted overwriting of same filenames
-  from an archive
-- only job messages with number and path are printed to stdout
+- live progress bars and stderror messages of invoked processes from `7z` and
+  `chdman` cannot be provided anymore, as they would have been overlapping on
+  the terminal, but stdout messages such as statistics are still output
+- user input won't be allowed and automated as much as possible, because
+  overlapping messages and stuck on waiting or losing the context to what file
+  it belongs to are potential problems
 
 # Additional notes, workarounds and quirks
 

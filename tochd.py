@@ -24,7 +24,7 @@ class App:
     """ Contains all settings and meta information for the application. """
 
     name: str = 'tochd'
-    version: str = '0.6'
+    version: str = '0.7'
     types = {
         'sheet': ('gdi', 'cue',),
         'image': ('iso',),
@@ -54,7 +54,7 @@ class App:
         self.chdprocessors: int = args.chdprocessors
         self.parallel: bool = args.parallel
         self.threads: int = args.threads
-        self.quiet: bool = args.quiet or args.parallel
+        self.quiet: bool = args.quiet
         self.dry_run: bool = args.dry_run
         self.emergency_break: bool = args.emergency_break
         self.pending_temp_list: list[Path] = []
@@ -150,6 +150,20 @@ class App:
             shutil.rmtree(path.as_posix(), ignore_errors=True)
         return path
 
+    def run_convert_process(self, command: list[str]) -> CompletedProcess:
+        stdout: int | None
+        stderr: int | None
+        if self.quiet:
+            stdout = subprocess.PIPE
+            stderr = subprocess.PIPE
+        elif self.parallel:
+            stdout = None
+            stderr = subprocess.PIPE
+        else:
+            stdout = None
+            stderr = None
+        return subprocess.run(command, stdout=stdout, stderr=stderr, text=True)
+
     def convert(self, file_list: list, startindex: int = 1) -> int:
         """ Convert all input files from specific filetype to CHD. """
 
@@ -211,14 +225,13 @@ class App:
         command.append('--output')
         command.append(file.output.as_posix())
 
-        completed = subprocess.run(command, capture_output=self.quiet)
+        completed = self.run_convert_process(command)
         if jobindex:
-            if (completed.returncode == 0
-                    and file.output.exists()):
+            if completed.returncode == 0 and file.output.exists():
                 self.message_job('Completed', file.output, jobindex)
             else:
-                self.message_job('Failed', file.output, jobindex)
                 file.output.unlink(missing_ok=True)
+                self.message_job('Failed', file.output, jobindex)
         return completed
 
     def convert_archive(self, archive,
@@ -244,12 +257,14 @@ class App:
         command: list[str] = []
         command.append(self.programs['7z'].as_posix())
         command.append('x')
-        if self.quiet:
+        if self.quiet or self.parallel:
             command.append('-y')
+        if self.parallel:
+            command.append('-bd')
         command.append(archive.input.as_posix())
         command.append(f'-o{archive.tempdir.as_posix()}')
 
-        completed = subprocess.run(command, capture_output=self.quiet)
+        completed = self.run_convert_process(command)
         if completed.returncode == 0:
             for file in archlist:
                 completed = self.convert_file(file, 0)
@@ -277,9 +292,9 @@ class App:
         command.append(self.programs['7z'].as_posix())
         command.append('l')
         command.append('-slt')
-        if self.quiet:
-            command.append('-y')
+        command.append('-y')
         command.append(file.input.as_posix())
+
         completed = subprocess.run(command, capture_output=True, text=True)
         if completed.returncode == 0:
             listing: list[str]
@@ -490,9 +505,9 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=False,
         action='store_true',
         help=('activate multithreading to process multiple files at the same '
-              'time, causes supressing the output of sub commands and '
-              'automates user input as much as possible, set number of '
-              'threads with option "-t"')
+              'time, hides progress bar and stderr stream from invoked '
+              'commands, but stdout is still output, automates user input '
+              'when possible, set number of threads with option "-t"')
     )
 
     parser.add_argument(
@@ -513,7 +528,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         type=int,
         choices=range(0, cpucount()),
         help=('limit the number of processor cores to utilize during '
-              'compression of the CHD files with "chdman", 0 will not limit '
+              'creation of the CHD files with "chdman", 0 will not limit '
               f'the cores (available: {os.cpu_count()}), defaults to "0"')
     )
 
@@ -521,8 +536,8 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         '-f', '--fast',
         default=False,
         action='store_true',
-        help=('no compression for CHD files with "chdman", allows for quickly '
-              'testing creation of files')
+        help=('no compression for CHD files with "chdman", allows for quick '
+              'testing of file creation')
     )
 
     parser.add_argument(
@@ -530,7 +545,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=False,
         action='store_true',
         help=('supress output from external programs, print job messages '
-              'only, automate user input if needed')
+              'only, automate user input when possible')
     )
 
     parser.add_argument(
@@ -616,7 +631,9 @@ def main(args: list[str] | None = None) -> int:
         print(example('.'))
         print(example('~/Downloads'))
         print(example('-q -- *'))
-        print(example("-pf ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'"))
+        print(
+            example("-pfq ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'")
+        )
         print(example('-d ~/converted -- *.7z > tochd.log'))
         print(example('-', stdin='ls -1'))
         return 0
