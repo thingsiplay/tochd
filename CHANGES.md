@@ -2,6 +2,16 @@
 
 Update history for **tochd**.
 
+## v0.8 - March 30, 2022
+
+- new: pseudo compiled bundle of the script with pyinstaller to build a
+  standalone executable, available on
+  [Releases](https://github.com/thingsiplay/tochd/releases) page
+- new: "Makefile" script for `make` to create the standalone bundle of Python
+  script with the Python interpreter and package it into an archive
+- changed: runs with default options `-X .`, if no options provided
+- some little internal optimizations or additions, such as code comments
+
 ## v0.7 - March 26, 2022
 
 - changed: when multithreading with option `-p`, the stdout and statistics from

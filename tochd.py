@@ -24,18 +24,21 @@ class App:
     """ Contains all settings and meta information for the application. """
 
     name: str = 'tochd'
-    version: str = '0.7'
+    version: str = '0.8'
     types = {
         'sheet': ('gdi', 'cue',),
         'image': ('iso',),
         'archive': ('7z', 'zip', 'gz', 'gzip', 'bz2', 'bzip2', 'rar', 'tar',)
     }
     exclude_hidden = True
+    home_as_posix: str = Path('~').expanduser().as_posix()
 
     def __init__(self, args: Argparse) -> None:
         """ Construct application attributes used as settings. """
 
         self.print_version: bool = args.version
+        self.frozen: bool = bool(getattr(sys, 'frozen', False)
+                                 and hasattr(sys, '_MEIPASS'))
         self.fast: bool = args.fast
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
@@ -141,16 +144,19 @@ class App:
     def delete_temp_dir(self, path: Path):
         """ Delete folder structure on disk if it is a temporary folder. """
 
+        path_as_posix: str = path.as_posix()
         if (path.is_dir()
                 and path.name.startswith('.')
                 and '_' in path.suffix
-                and not path.as_posix() == Path('~').expanduser().as_posix()
-                and not path.as_posix() == '/'
-                and not path.as_posix() == fullpath('.').as_posix()):
-            shutil.rmtree(path.as_posix(), ignore_errors=True)
+                and not path_as_posix == self.home_as_posix
+                and not path_as_posix == '/'
+                and not path_as_posix == Path('.').resolve().as_posix()):
+            shutil.rmtree(path_as_posix, ignore_errors=True)
         return path
 
     def run_convert_process(self, command: list[str]) -> CompletedProcess:
+        """ Executes command as a process and determines stdout and stderr. """
+
         stdout: int | None
         stderr: int | None
         if self.quiet:
@@ -165,7 +171,7 @@ class App:
         return subprocess.run(command, stdout=stdout, stderr=stderr, text=True)
 
     def convert(self, file_list: list, startindex: int = 1) -> int:
-        """ Convert all input files from specific filetype to CHD. """
+        """ Convert list of files to CHD. """
 
         lastindex: int = startindex
         if self.parallel:
@@ -188,7 +194,7 @@ class App:
                 else:
                     self.convert_file(file, jobindex)
                 self.unregister_pending_temp_list(file.output)
-            elif file.type == 'archive':
+            elif (file.type == 'archive' and not file.tempdir.exists()):
                 if file.tempdir:
                     self.register_pending_temp_list(file.tempdir)
                 self.register_pending_temp_list(file.output)
@@ -435,8 +441,8 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         help=('input multiple files or folders with ISOs or archives, all '
               'supported files from a given folder are processed, in addition '
               'use option dash "-" to read files from stdin for each line, '
-              'note: option "--" indicates everything after it is a file, '
-              'even those starting with a "-"')
+              'note: option "--" stops parsing for options and everything '
+              'after is a filename even those starting with a single dash "-"')
     )
 
     parser.add_argument(
@@ -609,14 +615,24 @@ def main(args: list[str] | None = None) -> int:
         app.clean_pending_temp_list
         sys.exit(255)
 
-    app: App = App(parse_arguments(args))
+    app: App
+    if not args and not sys.argv[1:]:
+        default_options: list[str] = ['-X', '.']
+        print('Fallback to default options:', ' '.join(default_options))
+        app = App(parse_arguments(default_options))
+    else:
+        app = App(parse_arguments(args))
 
     atexit.register(signal_SIGINT)
     signal.signal(signal.SIGTERM, signal_SIGTERM)
     signal.signal(signal.SIGINT, signal_SIGINT)
 
     if app.print_version:
-        print(f'{app.name} v{app.version}')
+        if app.frozen:
+            frozen = ' (pyinstaller)'
+        else:
+            frozen = ''
+        print(f'{app.name} v{app.version}{frozen}')
         return 0
     elif app.list_programs:
         for name, path in app.programs.items():
@@ -629,12 +645,12 @@ def main(args: list[str] | None = None) -> int:
     elif app.list_examples:
         print(example('--help'))
         print(example('.'))
+        print(example('-X .'))
         print(example('~/Downloads'))
-        print(example('-q -- *'))
+        print(example('-- *.7z'))
         print(
             example("-pfq ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'")
         )
-        print(example('-d ~/converted -- *.7z > tochd.log'))
         print(example('-', stdin='ls -1'))
         return 0
 
