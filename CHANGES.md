@@ -2,6 +2,13 @@
 
 Update history for **tochd**.
 
+## v.0.9 - July 06, 2022
+
+- changed: now flushes the output of job message without buffering, useful for
+  live monitoring and reading stdout the moment it is written
+- new: added a "PKGBUILD" for use with `pacman`, can be used to generate an
+  Archlinux package
+
 ## v0.8 - March 30, 2022
 
 - new: pseudo compiled bundle of the script with pyinstaller to build a

@@ -49,6 +49,18 @@ If you have an older Python version, then you might want to check the binary
 [release](https://github.com/thingsiplay/tochd/releases) package, which bundles
 up the script and Python interpreter to create a standalone executable.
 
+### Optional: Install on Archlinux using PKGBUILD package
+
+If you are using an Archlinux based system, then you can instead build an
+Archlinux package and install with `pacman`. Use `makepkg` to generate a .zst
+package or download from the
+[https://github.com/thingsiplay/tochd/releases](releases) page.
+Then use `sudo pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x`
+should be replaced by the version number of generated package) to install into
+the system. To remove the package, just use `sudo pacman -R tochd`. The
+installation directory is under "/usr/local/bin" and differs from the
+"install.sh" that is provided with the repository.
+
 ### Optional: Makefile and PyInstaller (you can ignore this part)
 
 The included "Makefile" is to build the package with the standalone binary. It
@@ -167,12 +179,13 @@ threads with option `-t` (short for `--threads`).
 
 # Additional notes, workarounds and quirks
 
-If you forcefully terminate the script while working, then unfinished files and
-especially temporary folders cannot be removed anymore. These files and folders
-can take up huge amount of space! Temporary folders are hidden starting with a
-dot "." in the name, followed by the name of archive and some random characters
-added. Make sure these files are deleted, in case you forcefully terminate the
-script.
+If you forcefully terminate the entire script while working, then unfinished
+files and especially temporary folders cannot be removed anymore. These files
+and folders can take up huge amount of space! Temporary folders are hidden
+starting with a dot "." in the name, followed by the name of archive and some
+random characters. Make sure these files are deleted. The regular `Ctrl+c` to
+abort current job is *not* a forced termination of script (unless option `-E`
+is in effect).
 
 Some archives contain multiple folders, each with ISO files of same name. These
 are usually intended to copy and overwrite files in a main folder as a meaning
@@ -180,3 +193,19 @@ of patching. However, the script has no understanding and knowledge about this
 and would try to convert each .iso file on it's own. As a workaround all .iso
 files in the archive are ignored when a sheet type such as CUE or GDI files are
 found.
+
+Somtimes .cue or .iso files found in an archive have a different name than the
+archive filename itself. Sometimes one of them lack important informations and
+you need to determine which of them is "correct". In example translations could
+have important information encoded in the filename of the .cue, which would be
+lost, as the .CHD file is automatically renamed to match the .zip or .7z
+archive in example. Use in such situations option `-R` (short for
+`--no-rename`) to prevent that and leave the original files name found inside
+the archive.
+
+There are cases where the audio files can be a different format than what the
+.cue (or .gdi) files expect. In example there are cases where the audio files
+are in .ape format and need to be converted to .wav first. If you are unsure
+about this, then look into any provided readme file or the .cue sheet itself.
+Then convert them before handing it over to .chd conversion.
+

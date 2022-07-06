@@ -24,7 +24,7 @@ class App:
     """ Contains all settings and meta information for the application. """
 
     name: str = 'tochd'
-    version: str = '0.8'
+    version: str = '0.9'
     types = {
         'sheet': ('gdi', 'cue',),
         'image': ('iso',),
@@ -315,7 +315,8 @@ class App:
         pad_size: int = 12
         pad_size = pad_size - len(str(jobindex))
         padded_msg = message.rjust(pad_size)
-        print('Job', jobindex, padded_msg + ':\t', path.as_posix())
+        message = f"Job {jobindex} {padded_msg}:\t{path.as_posix()}"
+        print(message, flush=True)
         return None
 
     @classmethod
@@ -438,11 +439,12 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         'file',
         default=[],
         nargs='*',
-        help=('input multiple files or folders with ISOs or archives, all '
-              'supported files from a given folder are processed, in addition '
-              'use option dash "-" to read files from stdin for each line, '
-              'note: option "--" stops parsing for options and everything '
-              'after is a filename even those starting with a single dash "-"')
+        help=('input multiple files or folders containing ISOs or archive '
+              'files, script will search for supported files in top level of '
+              'a folder, a single dash "-" character will instruct the script '
+              'to read file paths from stdin for each line, note: option '
+              'double dash "--" will stop parsing for program options and '
+              'everything following that is interpreted as a file')
     )
 
     parser.add_argument(
@@ -478,14 +480,14 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         dest='p7z',
         metavar='CMD',
         default='7z',
-        help='change path or command name of 7z program'
+        help='change path or command name to 7z program'
     )
 
     parser.add_argument(
         '--chdman',
         metavar='CMD',
         default='chdman',
-        help='change path or command name of chdman program'
+        help='change path or command name to chdman program'
     )
 
     parser.add_argument(
@@ -494,7 +496,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=None,
         help=('destination path to an existing directory to save the CHD file '
               'under, the temporary subfolder will be created here too, '
-              'defaults to each input files original directory')
+              'defaults to each input files original folder')
     )
 
     parser.add_argument(
@@ -503,7 +505,8 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         action='store_true',
         help=('disable automatic renaming for CHD files that were build from '
               'archives, no test for "if file already exists" can be provided '
-              'beforehand, only applicable to archive sources')
+              'beforehand, only applicable to archive sources, without this '
+              'option files from archives are renamed to match the archive')
     )
 
     parser.add_argument(
@@ -534,8 +537,9 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         type=int,
         choices=range(0, cpucount()),
         help=('limit the number of processor cores to utilize during '
-              'creation of the CHD files with "chdman", 0 will not limit '
-              f'the cores (available: {os.cpu_count()}), defaults to "0"')
+            'creation of the CHD files with "chdman" for each thread, '
+            f'0 will not limit the cores (available: {os.cpu_count()}), '
+            'defaults to "0"')
     )
 
     parser.add_argument(
@@ -559,9 +563,9 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=False,
         action='store_true',
         help=('Ctrl+c (SIGINT) will stop execution of script immadiately '
-              'with exit code 255, without this option the script defaults to '
-              'canceling current job process properly and continue with next '
-              'job process')
+              'with exit code 255, which could leave temporary files, without '
+              'this option the script defaults to canceling current job '
+              'process properly and continue with next job process in list')
     )
 
     parser.add_argument(
