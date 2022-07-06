@@ -22,3 +22,4 @@ package() {
     mkdir -p "$pkgdir/usr/local/bin"
     install -m 755 -T "$pkgname.py" "$pkgdir/usr/local/bin/${pkgname%%.*}"
 }
+sha256sums=('ddb3912f24544ddda315a45b8b9cec8d7f24481861e557a7e87252fdbd29108a')
