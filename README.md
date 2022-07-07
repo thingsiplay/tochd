@@ -58,7 +58,7 @@ package or download from the
 Then use `sudo pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x`
 should be replaced by the version number of generated package) to install into
 the system. To remove the package, just use `sudo pacman -R tochd`. The
-installation directory is under "/usr/local/bin" and differs from the
+installation directory is under "/usr/bin" and differs from the
 "install.sh" that is provided with the repository.
 
 ### Optional: Makefile and PyInstaller (you can ignore this part)
