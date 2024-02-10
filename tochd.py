@@ -52,6 +52,7 @@ class App:
         self.frozen: bool = bool(
             getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
         )
+        self.mode: str = args.mode
         self.fast: bool = args.fast
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
@@ -240,7 +241,10 @@ class App:
             self.message_job("Started", file.input, jobindex)
         command: list[str] = []
         command.append(self.programs["chdman"].as_posix())
-        command.append("createcd")
+        if self.mode == "cd":
+            command.append("createcd")
+        elif self.mode == "dvd":
+            command.append("createdvd")
         if self.fast:
             command.append("--compression")
             # none=Uncompressed, cdlz=CD LZMA, cdzl=CD Deflate, cdfl=CD FLAC
@@ -571,6 +575,18 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
             'creation of the CHD files with "chdman" for each thread, '
             f"0 will not limit the cores (available: {os.cpu_count()}), "
             'defaults to "0"'
+        ),
+    )
+
+    parser.add_argument(
+        "-m",
+        "--mode",
+        metavar="FORMAT",
+        default="cd",
+        choices=["cd", "dvd"],
+        help=(
+            'disc format to create with "chdman", some modern systems might '
+            'require or perform better with "dvd", defaults to "cd"'
         ),
     )
 
