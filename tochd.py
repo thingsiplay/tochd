@@ -8,6 +8,8 @@ import multiprocessing
 import subprocess
 import shutil
 import os.path
+import time
+import datetime
 import random
 import string
 import re
@@ -75,6 +77,11 @@ class App:
         self.dry_run: bool = args.dry_run
         self.emergency_break: bool = args.emergency_break
         self.pending_temp_list: list[Path] = []
+        self.stats: bool = args.stats
+        self.stats_started: int = 0
+        self.stats_skipped: int = 0
+        self.stats_failed: int = 0
+        self.stats_completed: int = 0
 
     def get_files(self, files: list[str]) -> list:
         """Filter and convert list of strings to list of supported Files."""
@@ -194,9 +201,11 @@ class App:
             lastindex = jobindex + 1
             if self.dry_run:
                 self.message_job("Skipped", file.input, jobindex)
+                self.stats_skipped += 1
                 continue
             elif file.output.exists():
                 self.message_job("Skipped", file.input, jobindex)
+                self.stats_skipped += 1
                 continue
             elif file.type == "image" or file.type == "sheet":
                 self.register_pending_temp_list(file.output)
@@ -228,6 +237,7 @@ class App:
                 self.unregister_pending_temp_list(file.output)
             else:
                 self.message_job("Skipped", file.input, jobindex)
+                self.stats_skipped += 1
                 continue
         if self.parallel:
             pool.close()
@@ -261,15 +271,18 @@ class App:
         if jobindex:
             if completed.returncode == 0 and file.output.exists():
                 self.message_job("Completed", file.output, jobindex)
+                self.stats_completed += 1
             else:
                 file.output.unlink(missing_ok=True)
                 self.message_job("Failed", file.output, jobindex)
+                self.stats_failed += 1
         return completed
 
     def convert_archive(self, archive, jobindex: int) -> CompletedProcess | None:
         """Extract and convert an archive to CHD."""
 
         self.message_job("Started", archive.input, jobindex)
+        self.stats_started += 1
         archlist: list[File] = self.listing_from_archive(archive)
         archlist = [f for f in archlist if f.type == "image" or f.type == "sheet"]
         archlist = self.filter_other_in_gdi_dirs(archlist)
@@ -280,6 +293,7 @@ class App:
 
         if not archlist:
             self.message_job("Failed", archive.output, jobindex)
+            self.stats_failed += 1
             return None
 
         self.register_pending_temp_list(archive.tempdir)
@@ -306,10 +320,13 @@ class App:
                     shutil.move(file.output.as_posix(), dest_path.as_posix())
                     if dest_path.exists():
                         self.message_job("Completed", dest_path, jobindex)
+                        self.stats_completed += 1
                 else:
                     self.message_job("Failed", dest_path, jobindex)
+                    self.stats_failed += 1
         else:
             self.message_job("Failed", archive.output, jobindex)
+            self.stats_failed += 1
 
         self.delete_temp_dir(archive.tempdir)
         return completed
@@ -447,6 +464,11 @@ def get_stdin_lines() -> list[str]:
     stdin_set: set[str] = set(stdin)
     stdin_set.discard("")
     return list(stdin_set)
+
+
+def elapsed_time(seconds: int | float) -> str:
+    elapsed = datetime.timedelta(seconds=int(seconds))
+    return str(elapsed).split(".")[0]
 
 
 def parse_arguments(args: list[str] | None = None) -> Argparse:
@@ -613,6 +635,14 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
     )
 
     parser.add_argument(
+        "-s",
+        "--stats",
+        default=False,
+        action="store_true",
+        help=("display additional stats, such as the elapsed time and a final summary"),
+    )
+
+    parser.add_argument(
         "-E",
         "--emergency-break",
         default=False,
@@ -655,6 +685,8 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
 
 def main(args: list[str] | None = None) -> int:
     """Run the application."""
+
+    start_time = time.time()
 
     def example(arguments: str, stdin: str | None = None):
         """Template to build example line for --list-examples option."""
@@ -718,7 +750,20 @@ def main(args: list[str] | None = None) -> int:
         print(example("-", stdin="ls -1"))
         return 0
 
+    if app.stats:
+        print("Files in queue:", len(app.files))
+        print()
+
     app.convert(app.files, startindex=1)
+
+    if app.stats:
+        print()
+        print("Started:", app.stats_started)
+        print("Skipped:", app.stats_skipped)
+        print("Failed:", app.stats_failed)
+        print("Completed:", app.stats_completed)
+        end_time = time.time()
+        print("Elapsed time:", elapsed_time(end_time - start_time))
     return 0
 
 
