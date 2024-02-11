@@ -42,19 +42,26 @@ packages: `p7zip mame-tools`
 
 ### Installation
 
+#### Manual installation
+
 No special installation setup is required, other than the above base
 requirements. Give `tochd.py` the executable bit, rename the script to exclude
 file extension and put it into a directory found in the systems `$PATH` . To
-automate these steps, an installation script is provided, but not required:
+automate these steps, an installation script is provided, but not required. If
+you cannot install from AUR, then use following commands to install newest
+version manually:
 
 ```bash
+git clone https://github.com/thingsiplay/tochd
+cd tochd
 bash suggested_install.sh
+tochd --help
 ```
 
-#### ... or Archlinux: Install with package manager
+#### AUR: Install with package manager on Archlinux
 
-The package is available in the AUR now:
-[AUR package](https://aur.archlinux.org/packages/tochd)
+The package is available in the Arch User Repository:
+[AUR Package Details](https://aur.archlinux.org/packages/tochd)
 
 - `yay -S tochd`
 - `pamac install tochd`
