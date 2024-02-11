@@ -14,6 +14,9 @@ Update history for **tochd**.
 - changed: also the install and uninstall scripts are reworked
 - removed: Makefile deleted, no need for PyInstaller packaged bundles, assuming
   most modern distributions can run the Python script anyway
+- removed: PKGBUILD deleted, which was used to create the Archlinux package
+  for the AUR, its just confusing and unnecessary for the end user and not
+  needed to be part of the project
 
 ## v0.9 - July 06, 2022
 

@@ -52,27 +52,13 @@ If you have an older Python version, then you might want to check the binary
 [release](https://github.com/thingsiplay/tochd/releases) package, which bundles
 up the script and Python interpreter to create a standalone executable.
 
-#### Alternative: Install on Archlinux
+#### Archlinux: Install with package manager
 
 The package is available in the AUR now:
 [AUR package](https://aur.archlinux.org/packages/tochd)
 
 - `yay -S tochd`
 - `pamac install tochd`
-
-##### ... or manually build Archlinux package yourself and install with `pacman`
-
-(The following steps are not necessary for you, as you most likely don't need to
-build the Archlinux package. So ignore this, unless you know 100% what you are
-doing.)
-
-Use `makepkg` to generate a .zst package from PKGBUILD or download from the
-[https://github.com/thingsiplay/tochd/releases](releases) page. Then use `sudo
-pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x` should be
-replaced by the version number of generated package) to install into the
-system. To remove the package, just use `sudo pacman -R tochd`. The
-installation directory is under "/usr/bin" and may differ from the
-"suggested_install.sh" that is provided with the repository.
 
 ## Usage
 
