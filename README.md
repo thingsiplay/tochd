@@ -161,7 +161,7 @@ Files in queue: 1
 Job 1     Started:      /home/tuncay/Desktop/Tactics Ogre Let Us Cling Together (USA).iso
 Job 1   Completed:      /home/tuncay/Desktop/Tactics Ogre Let Us Cling Together (USA).chd
 
-Started: 0
+Started: 1
 Skipped: 0
 Failed: 0
 Completed: 1
