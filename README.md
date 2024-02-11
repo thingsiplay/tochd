@@ -222,3 +222,14 @@ threads with option `-t` (short for `--threads`).
   archive in example. Use in such situations option `-R` (short for
   `--no-rename`) to prevent that and leave the original files name found inside
   the archive.
+
+### Use DVD format for certain emulators instead
+
+- Some emulators don't work well with the standard CD format created by
+  `chdman createcd` command, which is the default internal command in `tochd`.
+  The developers of ppsspp emulator recommends instead using the
+  `chdman createdvd` command to vastly improve performance of PSP games
+  converted to CHD format. For this reason I have added an option to `tochd`,
+  so you can use the DVD format instead with `--mode dvd` . Do not use this
+  blindly for all emulators. In fact, most are regular CDs anyway and `tochd`
+  defaults to `--mode cd` .
