@@ -2,7 +2,18 @@
 
 Update history for **tochd**.
 
-## v.0.9 - July 06, 2022
+## NEXT
+
+- new: option `-m` to specify disc format created by `chdman` backend,
+  defaults to `cd`, but for certain emulators (such as ppsspp) `dvd` is
+  recommended
+- new: option `-s` to display additional stats, such as a summary at the end and
+  how long the operation took
+- new option `-n` to simply shorten the displayed path of printed jobs as
+  filenames only, excluding the folder part
+- changed: also the install and uninstall scripts are reworked
+
+## v0.9 - July 06, 2022
 
 - changed: now flushes the output of job message without buffering, useful for
   live monitoring and reading stdout the moment it is written
@@ -30,7 +41,7 @@ Update history for **tochd**.
 
 - new implementation of entire script by rewriting from ground up, additional
   source code checks are done with mypy and flake8 to ensure some basic
-  quality, hopefully more readable code and improved robustness 
+  quality, hopefully more readable code and improved robustness
 
 - changed: default behavior of `Ctrl+c` (keyboard interrupt, SIGINT) will stop
   current job process and continue with the next one in list
@@ -57,7 +68,7 @@ Update history for **tochd**.
 
 - new: option `-d` to specify output directory for the temporary folder and final .chd file, if specified then all new files are created in this directory
 - new: option `-r` to rename .chd files created from archives to match their archive filenames
-- changed: added job index number to each "Processing" and "Finished" messages, useful if input and output paths differ or parallel option `-p` is active 
+- changed: added job index number to each "Processing" and "Finished" messages, useful if input and output paths differ or parallel option `-p` is active
 - new: option `--list-apps` will list path of all found programs used by tochd
 - new: projects Github link added to the bottom of `--help` output
 
