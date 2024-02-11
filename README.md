@@ -67,15 +67,15 @@ package from PKGBUILD or download from the
 Then use `sudo pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x`
 should be replaced by the version number of generated package) to install into
 the system. To remove the package, just use `sudo pacman -R tochd`. The
-installation directory is under "/usr/bin" and differs from the
-"install.sh" that is provided with the repository.
+installation directory is under "/usr/bin" and may differ from the
+"suggested_install.sh" that is provided with the repository.
 
 #### Optional: Makefile and PyInstaller (you can ignore this part)
 
 The included "Makefile" is to build the package with the standalone binary. It
 will create a venv, update stuff in it and run PyInstaller from it. If the
 process fails, then maybe the system package `mpdecimal` could be required. At
-least this was required on my Manjaro system.
+least this was required on my Archlinux-based system.
 
 ## Usage
 
@@ -99,22 +99,23 @@ from `7z` and `chdman` are printed to stdout.
 
 ### How to use the commandline options
 
-Options start with a dash and everything else is file or folder. In example
-`tochd .` will search current working directory for files to convert. Using the
-option `-X` like this `tochd -X .` will just list files without processing
-them. The option `-d DIR` specifies a directory to output the created .chd
-files into. In example `tochd -q -d ~/chd ~/Downloads` will process all files
-it can find in the "Downloads" directory and save the resulting .chd files in a
-folder named "chd" in the users home folder. The `-q` option means "quiet" and
-will hide progress information from `7z` and `chdman`, but still print out the
-current job information from the script itself.
+Options start with a dash and everything else is a file or folder. In example
+`tochd .` will search current working directory for files to convert. Use
+option `-X` like in `tochd -X .` to list files without processing them. The
+option `-d DIR` specifies a directory to output all created .chd files into. In
+example `tochd -q -d ~/new_chds ~/Downloads` will process all files it can find
+in the "Downloads" directory and save the created .chd files in a folder named
+"new_chds" under users home. The `-q` option means "quiet" and will hide
+progress information from `7z` and `chdman`, but still output current job
+information from this script itself.
 
 You can also specify filenames directly or use shell globbing `*` in example to
 give a list of files over. Usually that is not a problem, but if any filename
-starts with a dash `-`, then the filename would be interpreted as an option.
-But you can use the double dash `--` to indicate that anything following the
-double dash is a filename, regardless what the first character is. In example
-`tochd -- *.7z` will process all .7z files in current directory.
+starts with a dash `-`, then the filename would be interpreted as an option. To
+prevent that, you can use double dash option `--` to indicate that anything
+following the double dash is a filename and not an option. In example
+`tochd -q -- -name_starting_with_dash.iso` would recognize `-q` as an option
+and `-name_starting_with_dash.iso` as a filename.
 
 Use `tochd --help` to list all options and their brief description.
 
@@ -122,9 +123,8 @@ Use `tochd --help` to list all options and their brief description.
 
 ```bash
 tochd --help
-tochd .
-tochd -X .
-tochd -q ~/Downloads
+tochd -q .
+tochd -X ~/Downloads
 tochd -- *.7z
 ```
 
