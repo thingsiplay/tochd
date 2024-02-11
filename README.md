@@ -55,11 +55,16 @@ up the script and Python interpreter to create a standalone executable.
 #### Alternative: Install on Archlinux
 
 The package is available in the AUR now:
+[AUR package](https://aur.archlinux.org/packages/tochd)
 
 - `yay -S tochd`
 - `pamac install tochd`
 
 ##### ... or manually build Archlinux package yourself and install with `pacman`
+
+(The following steps are not necessary for you, as you most likely don't need to
+build the Archlinux package. So ignore this, unless you know 100% what you are
+doing.)
 
 Use `makepkg` to generate a .zst package from PKGBUILD or download from the
 [https://github.com/thingsiplay/tochd/releases](releases) page. Then use `sudo
