@@ -28,23 +28,25 @@ conversion.
 
 ## Requirements
 
-The script is written in Python 3.10 for Linux. No other Python module is
-required. The following external applications are required to run the script:
+The script was originally written for Python 3.10 for Linux. No other Python
+module is required. The following external applications are required to run
+the script:
 
 ```bash
 7z
 chdman
 ```
 
-On my Manjaro system, they are available in the packages: `p7zip mame-tools`
+On my Archlinux-based Linux system, they are available within the packages:
+`p7zip mame-tools`
 
 ### Installation
 
 No special installation setup is required, other than the above base
 requirements. Run the script from any directory you want. Give it the
 executable bit, rename the script to exclude file extension and put it into a
-folder that is in the systems `$PATH` . An installation script "install.sh" is
-provided, but not required.
+folder that is in the systems `$PATH` . An installation script
+"suggested_install.sh" is provided, but not required.
 
 If you have an older Python version, then you might want to check the binary
 [release](https://github.com/thingsiplay/tochd/releases) package, which bundles
@@ -54,8 +56,8 @@ up the script and Python interpreter to create a standalone executable.
 
 The package is available in the AUR now:
 
-- `pamac install tochd`
 - `yay -S tochd`
+- `pamac install tochd`
 
 ##### ... or manually build Archlinux package yourself and install with `pacman`
 
@@ -80,9 +82,11 @@ least this was required on my Manjaro system.
 ```bash
 usage: tochd [OPTIONS] [FILE ...]
 
-usage: tochd [-h] [--version] [--list-examples] [--list-formats]
-             [--list-programs] [--7z CMD] [--chdman CMD] [-d DIR] [-R] [-p]
-             [-t NUM] [-c NUM] [-f] [-q] [-E] [-X] [-]
+usage: tochd [-h] [--version]
+             [--list-examples] [--list-formats] [--list-programs]
+             [--7z CMD] [--chdman CMD]
+             [-d DIR] [-R] [-p] [-t NUM] [-c NUM] [-m FORMAT]
+             [-f] [-q] [-n] [-s] [-E] [-X] [-]
              [file ...]
 ```
 
@@ -120,10 +124,8 @@ Use `tochd --help` to list all options and their brief description.
 tochd --help
 tochd .
 tochd -X .
-tochd ~/Downloads
+tochd -q ~/Downloads
 tochd -- *.7z
-tochd -pfq ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'
-ls -1 | tochd -
 ```
 
 ### Example output
@@ -134,7 +136,7 @@ are files that are successfully created. "Failed" jobs point to the path that
 would have been created.
 
 ```bash
-$ tochd -fq cue iso gdi unsupported .
+$ tochd -q cue iso gdi unsupported .
 Job 1     Started:    /home/tuncay/Downloads/cue/Vampire Savior (English v1.0).7z
 Job 1   Completed:    /home/tuncay/Downloads/cue/Vampire Savior (English v1.0).chd
 Job 2     Started:    /home/tuncay/Downloads/cue/3 x 3 Eyes - Sanjiyan Hensei (ACD, SCD)(JPN).zip
@@ -186,32 +188,37 @@ threads with option `-t` (short for `--threads`).
 
 ## Additional notes, workarounds and quirks
 
-If you forcefully terminate the entire script while working, then unfinished
-files and especially temporary folders cannot be removed anymore. These files
-and folders can take up huge amount of space! Temporary folders are hidden
-starting with a dot "." in the name, followed by the name of archive and some
-random characters. Make sure these files are deleted. The regular `Ctrl+c` to
-abort current job is _not_ a forced termination of script (unless option `-E`
-is in effect).
+### Forcefully terminating script will leave unfinished files
 
-Some archives contain multiple folders, each with ISO files of same name. These
-are usually intended to copy and overwrite files in a main folder as a meaning
-of patching. However, the script has no understanding and knowledge about this
-and would try to convert each .iso file on it's own. As a workaround all .iso
-files in the archive are ignored when a sheet type such as CUE or GDI files are
-found.
+- If you forcefully terminate the entire script while working, then unfinished
+  files and especially temporary folders cannot be removed anymore. These files
+  and folders can take up huge amount of space! Temporary folders are hidden
+  starting with a dot "." in the name, followed by the name of archive and some
+  random characters. Make sure these files are deleted. The regular `Ctrl+c` to
+  abort current job is _not_ a forced termination of script (unless option `-E`
+  is in effect).
 
-Somtimes .cue or .iso files found in an archive have a different name than the
-archive filename itself. Sometimes one of them lack important informations and
-you need to determine which of them is "correct". In example translations could
-have important information encoded in the filename of the .cue, which would be
-lost, as the .CHD file is automatically renamed to match the .zip or .7z
-archive in example. Use in such situations option `-R` (short for
-`--no-rename`) to prevent that and leave the original files name found inside
-the archive.
+### Files and archives that need special preparation before converting
 
-There are cases where the audio files can be a different format than what the
-.cue (or .gdi) files expect. In example there are cases where the audio files
-are in .ape format and need to be converted to .wav first. If you are unsure
-about this, then look into any provided readme file or the .cue sheet itself.
-Then convert them before handing it over to .chd conversion.
+- Some archives contain multiple folders, each with ISO files of same name. These
+  are usually intended to copy and overwrite files in a main folder as a meaning
+  of patching. However, the script has no understanding and knowledge about this
+  and would try to convert each .iso file on it's own. As a workaround all .iso
+  files in the archive are ignored when a sheet type such as CUE or GDI files are
+  found.
+- There are cases where the audio files can be a different format than what the
+  .cue (or .gdi) files expect. In example there are cases where the audio files
+  are in .ape format and need to be converted to .wav first. If you are unsure
+  about this, then look into any provided readme file or the .cue sheet itself.
+  Then convert them before handing it over to .chd conversion.
+
+### Automatic renaming output files based on archive filename
+
+- Sometimes .cue or .iso files found in an archive have a different name than the
+  archive filename itself. Sometimes one of them lack important informations and
+  you need to determine which of them is "correct". In example translations could
+  have important information encoded in the filename of the .cue, which would be
+  lost, as the .CHD file is automatically renamed to match the .zip or .7z
+  archive in example. Use in such situations option `-R` (short for
+  `--no-rename`) to prevent that and leave the original files name found inside
+  the archive.
