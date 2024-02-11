@@ -74,6 +74,7 @@ class App:
         self.parallel: bool = args.parallel
         self.threads: int = args.threads
         self.quiet: bool = args.quiet
+        self.names: bool = args.names
         self.dry_run: bool = args.dry_run
         self.emergency_break: bool = args.emergency_break
         self.pending_temp_list: list[Path] = []
@@ -355,7 +356,11 @@ class App:
         pad_size: int = 12
         pad_size = pad_size - len(str(jobindex))
         padded_msg = message.rjust(pad_size)
-        message = f"Job {jobindex} {padded_msg}:\t{path.as_posix()}"
+        if self.names:
+            path_msg = path.name
+        else:
+            path_msg = path.as_posix()
+        message = f"Job {jobindex} {padded_msg}:\t{path_msg}"
         print(message, flush=True)
         return None
 
@@ -632,6 +637,14 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
             "supress output from external programs, print job messages "
             "only, automate user input when possible"
         ),
+    )
+
+    parser.add_argument(
+        "-n",
+        "--names",
+        default=False,
+        action="store_true",
+        help=("shorten output path as filename only for each printed job message"),
     )
 
     parser.add_argument(
