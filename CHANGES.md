@@ -12,6 +12,8 @@ Update history for **tochd**.
 - new option `-n` to simply shorten the displayed path of printed jobs as
   filenames only, excluding the folder part
 - changed: also the install and uninstall scripts are reworked
+- removed: Makefile deleted, no need for PyInstaller packaged bundles, assuming
+  most modern distributions can run the Python script anyway
 
 ## v0.9 - July 06, 2022
 

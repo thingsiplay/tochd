@@ -61,21 +61,13 @@ The package is available in the AUR now:
 
 ##### ... or manually build Archlinux package yourself and install with `pacman`
 
-Use `makepkg` to generate a .zst
-package from PKGBUILD or download from the
-[https://github.com/thingsiplay/tochd/releases](releases) page.
-Then use `sudo pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x`
-should be replaced by the version number of generated package) to install into
-the system. To remove the package, just use `sudo pacman -R tochd`. The
+Use `makepkg` to generate a .zst package from PKGBUILD or download from the
+[https://github.com/thingsiplay/tochd/releases](releases) page. Then use `sudo
+pacman -U tochd-x.x-x-any.pkg.tar.zst` command (where the `x` should be
+replaced by the version number of generated package) to install into the
+system. To remove the package, just use `sudo pacman -R tochd`. The
 installation directory is under "/usr/bin" and may differ from the
 "suggested_install.sh" that is provided with the repository.
-
-#### Optional: Makefile and PyInstaller (you can ignore this part)
-
-The included "Makefile" is to build the package with the standalone binary. It
-will create a venv, update stuff in it and run PyInstaller from it. If the
-process fails, then maybe the system package `mpdecimal` could be required. At
-least this was required on my Archlinux-based system.
 
 ## Usage
 
