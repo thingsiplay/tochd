@@ -37,22 +37,21 @@ the script:
 chdman
 ```
 
-On my Archlinux-based Linux system, they are available within the packages:
-`p7zip mame-tools`
+On my Archlinux-based distribution, the programs are available in the
+packages: `p7zip mame-tools`
 
 ### Installation
 
 No special installation setup is required, other than the above base
-requirements. Run the script from any directory you want. Give it the
-executable bit, rename the script to exclude file extension and put it into a
-folder that is in the systems `$PATH` . An installation script
-"suggested_install.sh" is provided, but not required.
+requirements. Give `tochd.py` the executable bit, rename the script to exclude
+file extension and put it into a directory found in the systems `$PATH` . To
+automate these steps, an installation script is provided, but not required:
 
-If you have an older Python version, then you might want to check the binary
-[release](https://github.com/thingsiplay/tochd/releases) package, which bundles
-up the script and Python interpreter to create a standalone executable.
+```bash
+bash suggested_install.sh
+```
 
-#### Archlinux: Install with package manager
+#### ... or Archlinux: Install with package manager
 
 The package is available in the AUR now:
 [AUR package](https://aur.archlinux.org/packages/tochd)
