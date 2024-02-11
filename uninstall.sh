@@ -1,17 +1,36 @@
 #!/bin/env bash
 
-name=tochd.py
-name_no_ext="${name%.py}"
-# install_dir=/usr/local/bin
-install_dir=$(systemd-path user-binaries)
-install_cmd=$(/usr/bin/which install)
+found=$(which -a tochd)
 
-rm -f "$install_dir/$name_no_ext"
+echo "Found installations:"
+echo "${found}"
+echo
+echo 'WARNING: If you installed tochd with a package manager, then use your' \
+	'package manager instead to uninstall it again.'
+echo
 
-if [[ $? -ne 0 ]]
-then
-    echo "Error! Could not uninstall $name_no_ext from $install_dir !!"
-    exit 1
-else
-    echo "$name_no_ext uninstalled from $install_dir"
-fi
+SAVEIFS=$IFS
+IFS=$'\n'
+list_of_installed=(${found})
+IFS=$SAVEIFS
+
+for path in "${list_of_installed[@]}"; do
+	echo 'Do you want remove?'
+	echo "        ${path}"
+	echo ''
+	echo '(Y)es or (N)o:'
+
+	read -t 10 answer
+
+	first_letter="${answer:0:1}"
+	if [[ "${first_letter}" == "y" || "${first_letter}" == "Y" ]]; then
+		if rm -f "${path}"; then
+			echo "${path} uninstalled."
+		else
+			echo "Error! Could not uninstall ${path} !!"
+			exit 1
+		fi
+	else
+		continue
+	fi
+done
