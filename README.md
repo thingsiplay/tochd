@@ -152,6 +152,22 @@ Job 12    Started:    /home/tuncay/Downloads/missingfiles.gdi
 Job 12     Failed:    /home/tuncay/Downloads/missingfiles.chd
 ```
 
+PSP games should be using the `dvd` format option.
+
+```bash
+$ tochd -qs -m dvd Tactics*.iso
+Files in queue: 1
+
+Job 1     Started:      /home/tuncay/Desktop/Tactics Ogre Let Us Cling Together (USA).iso
+Job 1   Completed:      /home/tuncay/Desktop/Tactics Ogre Let Us Cling Together (USA).chd
+
+Started: 0
+Skipped: 0
+Failed: 0
+Completed: 1
+Elapsed time: 0:00:17
+```
+
 ### Cancel jobs
 
 At default `Ctrl+c` in the terminal will abort current job and start next one.
