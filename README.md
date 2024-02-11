@@ -106,8 +106,8 @@ Use `tochd --help` to list all options and their brief description.
 ```bash
 tochd --help
 tochd -q .
-tochd -X ~/Downloads
-tochd -- *.7z
+tochd --quiet --stats --names ~/Downloads
+tochd -p -- *.7z
 ```
 
 ### Example output

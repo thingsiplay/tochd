@@ -757,12 +757,9 @@ def main(args: list[str] | None = None) -> int:
         return 0
     elif app.list_examples:
         print(example("--help"))
-        print(example("."))
-        print(example("-X ."))
-        print(example("~/Downloads"))
-        print(example("-- *.7z"))
-        print(example("-pfq ~/Downloads | grep 'Completed:' | grep -Eo '/.+$'"))
-        print(example("-", stdin="ls -1"))
+        print(example("-q ."))
+        print(example("--quiet --stats --names ~/Downloads"))
+        print(example("-p -- *.7z"))
         return 0
 
     if app.stats:
