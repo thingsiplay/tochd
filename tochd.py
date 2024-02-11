@@ -250,6 +250,7 @@ class App:
 
         if jobindex:
             self.message_job("Started", file.input, jobindex)
+            self.stats_started += 1
         command: list[str] = []
         command.append(self.programs["chdman"].as_posix())
         if self.mode == "cd":
