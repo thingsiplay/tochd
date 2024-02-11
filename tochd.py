@@ -26,7 +26,7 @@ class App:
     """Contains all settings and meta information for the application."""
 
     name: str = "tochd"
-    version: str = "0.9"
+    version: str = "0.10"
     types = {
         "sheet": (
             "gdi",
@@ -481,7 +481,9 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
 
     parser = argparse.ArgumentParser(
         description=("Convert game ISO and archives to CD CHD for emulation."),
-        epilog=("Copyright © 2022 Tuncay D. " "<https://github.com/thingsiplay/tochd>"),
+        epilog=(
+            "Copyright © 2022, 2024 Tuncay D. <https://github.com/thingsiplay/tochd>"
+        ),
     )
 
     parser.add_argument(

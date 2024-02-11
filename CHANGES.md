@@ -1,8 +1,8 @@
 # Changes
 
-Update history for **tochd**.
+Update history for [tochd](https://github.com/thingsiplay/tochd)
 
-## NEXT
+## v0.10 - February 11, 2024
 
 - new: option `-m` to specify disc format created by `chdman` backend,
   defaults to `cd`, but for certain emulators (such as ppsspp) `dvd` is
