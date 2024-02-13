@@ -2,6 +2,12 @@
 
 Update history for [tochd](https://github.com/thingsiplay/tochd)
 
+## Next
+
+- bug: counter for finish states like "Completed: 0" are disabled, when
+  combining the options `-p` and `-s`, because counting these variables is not
+  thread safe at the moment
+
 ## v0.10 - February 11, 2024
 
 - new: option `-m` to specify disc format created by `chdman` backend,

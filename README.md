@@ -238,3 +238,19 @@ threads with option `-t` (short for `--threads`).
   so you can use the DVD format instead with `--mode dvd` . Do not use this
   blindly for all emulators. In fact, most are regular CDs anyway and `tochd`
   defaults to `--mode cd` .
+
+### Buggy GDI files causes to not process any other file too
+
+- There is a bug with .gdi files, but normally this shouldn't be a problem.
+  When a .gdi file contains lines that points to non existing files or are
+  corrupt otherwise, then the program might stop processing any file. In such
+  situation, exclude these .gdi and its associated .gdi files, so it does not
+  get in the way.
+
+### Stats counting with parallel option does not work
+
+- At the moment counting a Job finish state (such as "Completed" or "Skipped")
+  is thread unsafe. This is an oversight and rookie mistake by me. Therefore
+  until a solution is found, the program will simply exclude the counter such
+  as "Skipped: 0" and others from final result, when `-p` and `-s` options are
+  combined.

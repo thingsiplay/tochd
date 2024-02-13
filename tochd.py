@@ -112,6 +112,9 @@ class App:
             filtered_list: list[File] = []
             for file in list_of_files:
                 if file.input.parent not in gdi_dirs or file.input.suffix == ".gdi":
+                    # BUG: If the .gdi file contains lines that are not actual
+                    # existing files, then this can lead to removing of all
+                    # other files from queue and stop processing.
                     filtered_list.append(file)
             return filtered_list
         else:
