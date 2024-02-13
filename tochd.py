@@ -343,15 +343,18 @@ class App:
     def message_job(self, message: str, path: Path, jobindex: int) -> None:
         """Print job message with correct formatting."""
 
-        match message:
-            case "Started":
-                self.stats_started += 1
-            case "Skipped":
-                self.stats_skipped += 1
-            case "Failed":
-                self.stats_failed += 1
-            case "Completed":
-                self.stats_completed += 1
+        if not self.parallel:
+            # BUG: Counting is thread unsafe currently. Disable until a
+            # solution is found.
+            match message:
+                case "Started":
+                    self.stats_started += 1
+                case "Skipped":
+                    self.stats_skipped += 1
+                case "Failed":
+                    self.stats_failed += 1
+                case "Completed":
+                    self.stats_completed += 1
 
         pad_size: int = 12
         pad_size = pad_size - len(str(jobindex))
@@ -764,16 +767,16 @@ def main(args: list[str] | None = None) -> int:
 
     if app.stats:
         print("Files in queue:", len(app.files))
-        print()
 
     app.convert(app.files, startindex=1)
 
     if app.stats:
-        print()
-        print("Started:", app.stats_started)
-        print("Skipped:", app.stats_skipped)
-        print("Failed:", app.stats_failed)
-        print("Completed:", app.stats_completed)
+        if not app.parallel:
+            # BUG: Counting variables is currently thread unsafe.
+            print("Started:", app.stats_started)
+            print("Skipped:", app.stats_skipped)
+            print("Failed:", app.stats_failed)
+            print("Completed:", app.stats_completed)
         end_time = time.time()
         print("Elapsed time:", elapsed_time(end_time - start_time))
     return 0
