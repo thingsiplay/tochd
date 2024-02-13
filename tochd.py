@@ -202,11 +202,9 @@ class App:
             lastindex = jobindex + 1
             if self.dry_run:
                 self.message_job("Skipped", file.input, jobindex)
-                self.stats_skipped += 1
                 continue
             elif file.output.exists():
                 self.message_job("Skipped", file.input, jobindex)
-                self.stats_skipped += 1
                 continue
             elif file.type == "image" or file.type == "sheet":
                 self.register_pending_temp_list(file.output)
@@ -238,7 +236,6 @@ class App:
                 self.unregister_pending_temp_list(file.output)
             else:
                 self.message_job("Skipped", file.input, jobindex)
-                self.stats_skipped += 1
                 continue
         if self.parallel:
             pool.close()
@@ -250,7 +247,6 @@ class App:
 
         if jobindex:
             self.message_job("Started", file.input, jobindex)
-            self.stats_started += 1
         command: list[str] = []
         command.append(self.programs["chdman"].as_posix())
         if self.mode == "cd":
@@ -273,18 +269,15 @@ class App:
         if jobindex:
             if completed.returncode == 0 and file.output.exists():
                 self.message_job("Completed", file.output, jobindex)
-                self.stats_completed += 1
             else:
                 file.output.unlink(missing_ok=True)
                 self.message_job("Failed", file.output, jobindex)
-                self.stats_failed += 1
         return completed
 
     def convert_archive(self, archive, jobindex: int) -> CompletedProcess | None:
         """Extract and convert an archive to CHD."""
 
         self.message_job("Started", archive.input, jobindex)
-        self.stats_started += 1
         archlist: list[File] = self.listing_from_archive(archive)
         archlist = [f for f in archlist if f.type == "image" or f.type == "sheet"]
         archlist = self.filter_other_in_gdi_dirs(archlist)
@@ -295,7 +288,6 @@ class App:
 
         if not archlist:
             self.message_job("Failed", archive.output, jobindex)
-            self.stats_failed += 1
             return None
 
         self.register_pending_temp_list(archive.tempdir)
@@ -322,13 +314,10 @@ class App:
                     shutil.move(file.output.as_posix(), dest_path.as_posix())
                     if dest_path.exists():
                         self.message_job("Completed", dest_path, jobindex)
-                        self.stats_completed += 1
                 else:
                     self.message_job("Failed", dest_path, jobindex)
-                    self.stats_failed += 1
         else:
             self.message_job("Failed", archive.output, jobindex)
-            self.stats_failed += 1
 
         self.delete_temp_dir(archive.tempdir)
         return completed
@@ -353,6 +342,16 @@ class App:
 
     def message_job(self, message: str, path: Path, jobindex: int) -> None:
         """Print job message with correct formatting."""
+
+        match message:
+            case "Started":
+                self.stats_started += 1
+            case "Skipped":
+                self.stats_skipped += 1
+            case "Failed":
+                self.stats_failed += 1
+            case "Completed":
+                self.stats_completed += 1
 
         pad_size: int = 12
         pad_size = pad_size - len(str(jobindex))
