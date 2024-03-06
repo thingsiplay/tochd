@@ -11,11 +11,10 @@ import shutil
 import os.path
 import time
 import datetime
-import random
-import string
 import re
 
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TypeAlias
 
 
@@ -26,7 +25,7 @@ CompletedProcess: TypeAlias = subprocess.CompletedProcess
 class File:
     """Transforms a Path to File object with additional attributes."""
 
-    def __init__(self, input_path: Path, dir_path: Path | None = None):
+    def __init__(self, input_path: Path, dir_path: Path | None = None, temp_path: Path | None = None):
         """Constructs File attributes."""
 
         self.input: Path = input_path
@@ -35,10 +34,15 @@ class File:
         else:
             output = input_path
         self.output: Path = output.with_suffix(".chd")
-        self.tempdir: Path | None = None
         self.type: str | None = App.match_type(self.input)
+        self.tempdir: TemporaryDirectory | None = None
         if self.type == "archive":
-            self.tempdir = self.construct_tempdir()
+            # TODO: add option to use default temp path (see description of dir for how a default directory is chosen:
+            #  https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp)
+            if temp_path:
+                self.tempdir = TemporaryDirectory(dir=temp_path)
+            else:
+                self.tempdir = TemporaryDirectory(dir=self.output.parent)
 
     def get_size(self, unit: str = 'B'):
         exponents_map = {'B': 0, 'KB': 1, 'MB': 2, 'GB': 3}
@@ -51,19 +55,6 @@ class File:
 
         size = file_size / 1024 ** exponents_map[unit]
         return round(size, 3)
-
-    def construct_tempdir(self) -> Path:
-        """Build path for temporary folder."""
-
-        name: str = f".{self.input.name}_{File.random_str()}"
-        return self.output.with_name(name)
-
-    @classmethod
-    def random_str(cls, length: int = 10) -> str:
-        """Build random string consisting of uppercase chars and digits."""
-
-        population = string.ascii_uppercase + string.digits
-        return "".join(random.choices(population, k=length))
 
 
 def filter_other_in_gdi_dirs(list_of_files: list[File]):
@@ -143,6 +134,7 @@ class App:
             "7z": App.which(args.p7z),
         }
         self.output_dir: Path | None = App.existing_dir(args.output_dir)
+        self.temp_path: Path | None = App.existing_dir(args.temp_dir)
         self.no_rename: bool = args.no_rename
         self.files: list[File] = self.get_files(args.file)
         if args.stdin:
@@ -154,7 +146,6 @@ class App:
         self.names: bool = args.names
         self.dry_run: bool = args.dry_run
         self.emergency_break: bool = args.emergency_break
-        self.pending_temp_list: list[Path] = []
         self.stats: bool = args.stats
         self.stats_started: int = 0
         self.stats_skipped: int = 0
@@ -185,42 +176,10 @@ class App:
         """Transform Path to a File, if supported type and not hidden dir."""
 
         if not (self.exclude_hidden and path.name.startswith(".")):
-            file: File = File(path, dir_path=self.output_dir)
+            file: File = File(path, dir_path=self.output_dir, temp_path=self.temp_path)
             if file.type:
                 return file
         return None
-
-    def register_pending_temp_list(self, file: Path):
-        """Add file to list of marked for deletion."""
-
-        self.pending_temp_list.append(file)
-
-    def unregister_pending_temp_list(self, file: Path):
-        """Remove file from list of marked for deletion."""
-
-        self.pending_temp_list.remove(file)
-
-    def clean_pending_temp_list(self):
-        """Delete all temporary folders on disk marked for deletion."""
-
-        for file in self.pending_temp_list:
-            self.delete_temp_dir(file)
-        self.pending_temp_list = []
-
-    def delete_temp_dir(self, path: Path):
-        """Delete folder structure on disk if it is a temporary folder."""
-
-        path_as_posix: str = path.as_posix()
-        if (
-            path.is_dir()
-            and path.name.startswith(".")
-            and "_" in path.suffix
-            and not path_as_posix == self.home_as_posix
-            and not path_as_posix == "/"
-            and not path_as_posix == Path(".").resolve().as_posix()
-        ):
-            shutil.rmtree(path_as_posix, ignore_errors=True)
-        return path
 
     def run_convert_process(self, command: list[str]) -> CompletedProcess:
         """Executes command as a process and determines stdout and stderr."""
@@ -257,7 +216,6 @@ class App:
                 self.message_job("Skipped", file.input, job_index)
                 continue
             elif file.type == "image" or file.type == "sheet":
-                self.register_pending_temp_list(file.output)
                 if self.parallel:
                     pool.apply_async(
                         self.convert_file,
@@ -268,11 +226,7 @@ class App:
                     )
                 else:
                     self.convert_file(file, job_index)
-                self.unregister_pending_temp_list(file.output)
-            elif file.type == "archive" and not file.tempdir.exists():
-                if file.tempdir:
-                    self.register_pending_temp_list(file.tempdir)
-                self.register_pending_temp_list(file.output)
+            elif file.type == "archive":
                 if self.parallel:
                     pool.apply_async(
                         self.convert_archive,
@@ -283,7 +237,6 @@ class App:
                     )
                 else:
                     self.convert_archive(file, job_index)
-                self.unregister_pending_temp_list(file.output)
             else:
                 self.message_job("Skipped", file.input, job_index)
                 continue
@@ -345,14 +298,13 @@ class App:
             self.message_job("Failed", archive.output, job_index)
             return None
 
-        self.register_pending_temp_list(archive.tempdir)
         command: list[str] = [self.programs["7z"].as_posix(), "x"]
         if self.quiet or self.parallel:
             command.append("-y")
         if self.parallel:
             command.append("-bd")
+        command.append(f"-o{archive.tempdir.name}")
         command.append(archive.input.as_posix())
-        command.append(f"-o{archive.tempdir.as_posix()}")
 
         completed = self.run_convert_process(command)
         if completed.returncode == 0:
@@ -372,19 +324,18 @@ class App:
         else:
             self.message_job("Failed", archive.output, job_index)
 
-        self.delete_temp_dir(archive.tempdir)
+        archive.tempdir.cleanup()
         return completed
 
-    def listing_from_archive(self, file) -> list:
+    def listing_from_archive(self, file) -> list[File]:
         """Get a list of all paths in archive as File."""
 
         command: list[str] = [self.programs["7z"].as_posix(), "l", "-slt", "-y", file.input.as_posix()]
 
         completed = subprocess.run(command, capture_output=True, text=True)
         if completed.returncode == 0:
-            listing: list[str]
-            listing = re.findall(r"Path = (.+)", completed.stdout, re.M)
-            return [File(file.tempdir / Path(entry)) for entry in listing[1:]]
+            listing: list[str] = re.findall(r"Path = (.+)", completed.stdout, re.M)
+            return [File(file.tempdir.name / Path(entry)) for entry in listing[1:]]
         else:
             return []
 
@@ -463,12 +414,10 @@ class App:
 def fullpath(file: str) -> Path:
     """Transform str to path, resolve env vars, tilde and make absolute."""
 
-    expandedfile: str = os.path.expandvars(file)
-    path: Path = Path(expandedfile).expanduser().resolve()
-    return path
+    return Path(os.path.expandvars(file)).expanduser().resolve()
 
 
-def cpucount() -> int:
+def cpu_count() -> int:
     """Get actual count of CPU number."""
 
     count = os.cpu_count()
@@ -566,7 +515,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=None,
         help=(
             "destination path to an existing directory to save the CHD file "
-            "under, defaults to each input files original folder"
+            "under, defaults to each input files' original folder"
         ),
     )
 
@@ -576,7 +525,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=None,
         help=(
             "destination path to an existing directory to extract archives to, "
-            "defaults to each input files original folder"
+            "defaults to each input files' original folder"
         ),
     )
 
@@ -612,11 +561,11 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         metavar="NUM",
         default=2,
         type=int,
-        choices=range(0, cpucount()),
+        choices=range(0, cpu_count()),
         help=(
             "max number of threaded processes to run in parallel, requires "
             'option "-p" to be active, "0" is count of all cores '
-            f'(available: {os.cpu_count()}), defaults to "2"'
+            f'(available: {cpu_count()}), defaults to "2"'
         ),
     )
 
@@ -626,11 +575,11 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         metavar="NUM",
         default=0,
         type=int,
-        choices=range(0, cpucount()),
+        choices=range(0, cpu_count()),
         help=(
             "limit the number of processor cores to utilize during "
             'creation of the CHD files with "chdman" for each thread, '
-            f"0 will not limit the cores (available: {os.cpu_count()}), "
+            f"0 will not limit the cores (available: {cpu_count()}), "
             'defaults to "0"'
         ),
     )
@@ -744,7 +693,6 @@ def main(args: list[str] | None = None) -> int:
     def signal_sigint(*_):
         """Shutdown clean and gracefully on Ctrl+c keyboard interruption."""
 
-        app.clean_pending_temp_list()
         try:
             sys.exit(3)
         except SystemExit:
@@ -754,7 +702,6 @@ def main(args: list[str] | None = None) -> int:
     def signal_sigterm(*_):
         """Forcefully shutdown on TERM signal. May leave unfinished files."""
 
-        app.clean_pending_temp_list()
         sys.exit(255)
 
     app: App
