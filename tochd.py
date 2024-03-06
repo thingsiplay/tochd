@@ -94,7 +94,7 @@ class App:
     """Contains all settings and meta information for the application."""
 
     name: str = "tochd"
-    version: str = "0.10"
+    version: str = "0.11"
     types: dict[str, tuple[str, ...]] = {
         "sheet": (
             "gdi",
