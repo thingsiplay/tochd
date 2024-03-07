@@ -1,6 +1,6 @@
 # tochd
 
-Convert game ISO and archives to CD CHD for emulation.
+Convert game ISO and archives to CD/DVD CHD for emulation.
 
 - Author: Tuncay D.
 - Website: [tochd-converter](https://thingsiplay.game.blog/tochd-converter)
@@ -12,7 +12,7 @@ Convert game ISO and archives to CD CHD for emulation.
 ## What is this program for and what are CHD files?
 
 Automation script written in Python as a frontend to `7z` and `chdman` for
-converting CD formats into CD CHD.
+converting CD like formats into CD or DVD CHD.
 
 When you are playing CD based games on RetroArch or possibly on any emulator
 which supports CHD files, then you might want to convert your ISO and CUE+BIN
@@ -115,6 +115,7 @@ tochd --help
 tochd -q .
 tochd --quiet --stats --names ~/Downloads
 tochd -p -- *.7z
+tochd -m dvd -- psp/
 ```
 
 ### Example output
@@ -197,11 +198,9 @@ threads with option `-t` (short for `--threads`).
 
 - If you forcefully terminate the entire script while working, then unfinished
   files and especially temporary folders cannot be removed anymore. These files
-  and folders can take up huge amount of space! Temporary folders are hidden
-  starting with a dot "." in the name, followed by the name of archive and some
-  random characters. Make sure these files are deleted. The regular `Ctrl+c` to
-  abort current job is _not_ a forced termination of script (unless option `-E`
-  is in effect).
+  and folders can take up huge amount of space! Make sure these files are
+  deleted. The regular `Ctrl+c` to abort current job is _not_ a forced
+  termination of script (unless option `-E` is in effect).
 
 ### Files and archives that need special preparation before converting
 
@@ -230,14 +229,13 @@ threads with option `-t` (short for `--threads`).
 
 ### Use DVD format for certain emulators instead
 
-- Some emulators don't work well with the standard CD format created by
-  `chdman createcd` command, which is the default internal command in `tochd`.
-  The developers of ppsspp emulator recommends instead using the
-  `chdman createdvd` command to vastly improve performance of PSP games
-  converted to CHD format. For this reason I have added an option to `tochd`,
-  so you can use the DVD format instead with `--mode dvd` . Do not use this
-  blindly for all emulators. In fact, most are regular CDs anyway and `tochd`
-  defaults to `--mode cd` .
+- Some emulators don't work well with standard CD format, because their
+  disc format is not CD. Especially the developers of PPSSPP emulator
+  recommends converting with `chdman createdvd` instead `chdman createcd`,
+  which are the internally used commands of `tochd`. `tochd` will use
+  `-m auto` which defaults to format based on file size. It defaults to `dvd`,
+  if file size exceeds 750 MB. But one can force the format with `-m dvd` or
+  `-m cd` and its recommended to use DVD format for PSP games always.
 
 ### Buggy GDI files causes to not process any other file too
 
@@ -254,3 +252,14 @@ threads with option `-t` (short for `--threads`).
   until a solution is found, the program will simply exclude the counter such
   as "Skipped: 0" and others from final result, when `-p` and `-s` options are
   combined.
+
+## Contributors
+
+While this project is mainly written and tested by myself, there are other
+major contributors who deserve a special recognition. Thank you to:
+
+- [AlexanderRavenheart](https://github.com/AlexanderRavenheart)
+
+Also visit:
+[Contributors](https://github.com/thingsiplay/tochd/graphs/contributors)
+for a more complete list and stats.
