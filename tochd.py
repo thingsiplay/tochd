@@ -428,14 +428,14 @@ def fullpath(file: str) -> Path:
     return Path(os.path.expandvars(file)).expanduser().resolve()
 
 
-def cpu_count() -> int:
-    """Get actual count of CPU number."""
+def available_cpu_count() -> int:
+    """Get actual number of available logical CPU count."""
 
-    count = os.cpu_count()
-    if count is None:
+    count = len(os.sched_getaffinity(0))
+    if count == 0 or count is None:
         return 0
     else:
-        return int(count + 1)
+        return count
 
 
 def get_stdin_lines() -> list[str]:
@@ -572,11 +572,11 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         metavar="NUM",
         default=2,
         type=int,
-        choices=range(0, cpu_count()),
+        choices=range(available_cpu_count() + 1),
         help=(
             "max number of threaded processes to run in parallel, requires "
             'option "-p" to be active, "0" is count of all cores '
-            f'(available: {cpu_count()}), defaults to "2"'
+            f'(available: {available_cpu_count()}), defaults to "2"'
         ),
     )
 
@@ -586,11 +586,11 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         metavar="NUM",
         default=0,
         type=int,
-        choices=range(0, cpu_count()),
+        choices=range(available_cpu_count() + 1),
         help=(
             "limit the number of processor cores to utilize during "
             'creation of the CHD files with "chdman" for each thread, '
-            f"0 will not limit the cores (available: {cpu_count()}), "
+            f"0 will not limit the cores (available: {available_cpu_count()}), "
             'defaults to "0"'
         ),
     )
