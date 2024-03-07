@@ -257,7 +257,7 @@ class App:
             self.message_job("Started", file.input, job_index)
         command: list[str] = [self.programs["chdman"].as_posix()]
         match self.mode:
-            case "dynamic":
+            case "auto":
                 if file.get_size("MB") > 750:
                     command.append("createdvd")
                 else:
@@ -599,12 +599,12 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         "-m",
         "--mode",
         metavar="FORMAT",
-        default="dynamic",
-        choices=["cd", "dvd", "dynamic"],
+        default="auto",
+        choices=["cd", "dvd", "auto"],
         help=(
             'disc format to create with "chdman", some modern systems might '
-            'require or perform better with "dvd", defaults to "dynamic" which determines'
-            "the format to use based on the ISO size"
+            'require or perform better with "dvd", defaults to "auto" which determines'
+            "the format to use based on the ISO size (750 MB threshold)"
         ),
     )
 
