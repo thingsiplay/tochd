@@ -25,7 +25,12 @@ CompletedProcess: TypeAlias = subprocess.CompletedProcess
 class File:
     """Transforms a Path to File object with additional attributes."""
 
-    def __init__(self, input_path: Path, dir_path: Path | None = None, temp_path: Path | None = None):
+    def __init__(
+        self,
+        input_path: Path,
+        dir_path: Path | None = None,
+        temp_path: Path | None = None,
+    ):
         """Constructs File attributes."""
 
         self.input: Path = input_path
@@ -44,13 +49,13 @@ class File:
             else:
                 self.tempdir = TemporaryDirectory(dir=self.output.parent)
 
-    def get_size(self, unit: str = 'B'):
-        exponents_map = {'B': 0, 'KB': 1, 'MB': 2, 'GB': 3}
+    def get_size(self, unit: str = "B"):
+        exponents_map = {"B": 0, "KB": 1, "MB": 2, "GB": 3}
         if unit not in exponents_map:
             raise ValueError(f"Unit must be one of: {list(exponents_map.keys())}")
 
         file_size = self.input.stat().st_size
-        if unit == 'bytes':
+        if unit == "bytes":
             return file_size
 
         size = file_size / 1024 ** exponents_map[unit]
@@ -253,7 +258,7 @@ class App:
         command: list[str] = [self.programs["chdman"].as_posix()]
         match self.mode:
             case "dynamic":
-                if file.get_size('MB') > 750:
+                if file.get_size("MB") > 750:
                     command.append("createdvd")
                 else:
                     command.append("createcd")
@@ -330,7 +335,13 @@ class App:
     def listing_from_archive(self, file) -> list[File]:
         """Get a list of all paths in archive as File."""
 
-        command: list[str] = [self.programs["7z"].as_posix(), "l", "-slt", "-y", file.input.as_posix()]
+        command: list[str] = [
+            self.programs["7z"].as_posix(),
+            "l",
+            "-slt",
+            "-y",
+            file.input.as_posix(),
+        ]
 
         completed = subprocess.run(command, capture_output=True, text=True)
         if completed.returncode == 0:
@@ -593,7 +604,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         help=(
             'disc format to create with "chdman", some modern systems might '
             'require or perform better with "dvd", defaults to "dynamic" which determines'
-            'the format to use based on the ISO size'
+            "the format to use based on the ISO size"
         ),
     )
 
