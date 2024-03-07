@@ -2,11 +2,22 @@
 
 Update history for [tochd](https://github.com/thingsiplay/tochd)
 
-## Next
+## v0.11 - March 7, 2024
 
 - bug: counter for finish states like "Completed: 0" are disabled, when
   combining the options `-p` and `-s`, because counting these variables is not
   thread safe at the moment
+- new setting in option: `-m` now defaults to and has the setting `auto`, which
+  automatically determines what format to use "cd" or "dvd" by filesize with a
+  threshold of 750 MB (thanks AlexanderRavenheart
+  [#3](https://github.com/thingsiplay/tochd/pull/3))
+- changed: generation and handling of temporary folders refactored, now it's
+  using proper builtin `tempfile` functionality instead custom logic, currently
+  the folders are not hidden anymore (thanks AlexanderRavenheart
+  [#3](https://github.com/thingsiplay/tochd/pull/3))
+- lot of internal code refactor for being more consistent styling and naming
+  (thanks AlexanderRavenheart
+  [#3](https://github.com/thingsiplay/tochd/pull/3))
 
 ## v0.10 - February 11, 2024
 
