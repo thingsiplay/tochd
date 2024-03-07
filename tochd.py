@@ -652,10 +652,10 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=False,
         action="store_true",
         help=(
-            "Ctrl+c (SIGINT) will stop execution of script immadiately "
-            "with exit code 255, which could leave temporary files, without "
-            "this option the script defaults to canceling current job "
-            "process properly and continue with next job process in list"
+            "Ctrl+c (SIGINT) will cancel all jobs and stop script execution "
+            "with exit code 255, all temporary files and folders should be "
+            "removed automatically, without this option script defaults to "
+            "canceling current job only and move on to next"
         ),
     )
 

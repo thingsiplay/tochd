@@ -173,8 +173,10 @@ Elapsed time: 0:00:17
 
 At default `Ctrl+c` in the terminal will abort current job and start next one.
 Temporary folders and files are removed automatically, but it can't hurt to
-check manually for confirmation. Temporary folders are hidden starting with a
-dot in name.
+check manually for confirmation. When option `-E` is in effect and `Ctrl+c` is
+used in the terminal, then script will stop ALL jobs and exit, while removing
+the temporary folders as well. (Unlike before, where option `-E` caused to
+leave temporary files.)
 
 ### Multiprocessing support
 
@@ -194,13 +196,13 @@ threads with option `-t` (short for `--threads`).
 
 ## Additional notes, workarounds and quirks
 
-### Forcefully terminating script will leave unfinished files
+### Forcefully terminating script could leave unfinished files
 
 - If you forcefully terminate the entire script while working, then unfinished
   files and especially temporary folders cannot be removed anymore. These files
   and folders can take up huge amount of space! Make sure these files are
-  deleted. The regular `Ctrl+c` to abort current job is _not_ a forced
-  termination of script (unless option `-E` is in effect).
+  deleted. The regular `Ctrl+c` in the terminal to abort current job is _not_
+  a forced termination of script (even when option `-E` is in effect).
 
 ### Files and archives that need special preparation before converting
 

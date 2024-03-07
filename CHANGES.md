@@ -16,6 +16,10 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
   using proper builtin `tempfile` functionality instead custom logic, currently
   the folders are not hidden anymore (thanks AlexanderRavenheart
   [#3](https://github.com/thingsiplay/tochd/pull/3))
+- changed: due to the new approach of temporary folders, the option `-E` will
+  finally cause `Ctrl+c` to delete temporary files and folders before exiting
+  (thanks AlexanderRavenheart
+  [#3](https://github.com/thingsiplay/tochd/pull/3))
 - lot of internal code refactor for being more consistent styling and naming
   (thanks AlexanderRavenheart
   [#3](https://github.com/thingsiplay/tochd/pull/3))
