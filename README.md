@@ -74,9 +74,9 @@ usage: tochd [OPTIONS] [FILE ...]
 usage: tochd [-h] [--version]
              [--list-examples] [--list-formats] [--list-programs]
              [--7z CMD] [--chdman CMD]
-             [-d DIR] [-R] [-p] [-t NUM] [-c NUM] [-m FORMAT]
-             [-f] [-q] [-n] [-s] [-E] [-X] [-]
-             [file ...]
+             [-d DIR] [--temp-dir TEMP_DIR]
+             [-R] [-p] [-t NUM] [-c NUM] [-m FORMAT] [-f] [-q] [-n] [-s] [-E] [-X]
+             [-] [file ...]
 ```
 
 This is a commandline application without a graphical interface. The most basic
