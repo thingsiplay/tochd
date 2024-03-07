@@ -2,11 +2,12 @@
 
 Update history for [tochd](https://github.com/thingsiplay/tochd)
 
-## v0.11 - March 7, 2024
+## v0.11 - March 8, 2024
 
 - bug: counter for finish states like "Completed: 0" are disabled, when
   combining the options `-p` and `-s`, because counting these variables is not
   thread safe at the moment
+- bug: cpu count was wrongly reported when using custom number for threads
 - new setting in option: `-m` now defaults to and has the setting `auto`, which
   automatically determines what format to use "cd" or "dvd" by filesize with a
   threshold of 750 MB (thanks AlexanderRavenheart
