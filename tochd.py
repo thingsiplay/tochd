@@ -374,7 +374,11 @@ class App:
 
     @classmethod
     def which(cls, command: str) -> Path:
-        """Find command in $PATH or get fullpath."""
+        """Find command in scripts dir, $PATH or get any custom fullpath."""
+
+        path = Path(__file__).parent / command
+        if path.is_file():
+            return path
 
         program: str | None = shutil.which(command)
         path: Path

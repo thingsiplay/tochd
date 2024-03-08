@@ -2,6 +2,11 @@
 
 Update history for [tochd](https://github.com/thingsiplay/tochd)
 
+## Next
+
+- changed: search for executables such as `7z` and `chdman` programs in
+  scripts own installed directory first, this makes it more portable
+
 ## v0.12 - March 8, 2024
 
 Note: We are jumping over v0.11 and combine it with next version v0.12.
