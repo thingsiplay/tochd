@@ -237,8 +237,8 @@ threads with option `-t` (short for `--threads`).
   which are the internally used commands of `tochd`. `tochd` will use
   `-m cd` at default, so make sure to change this option to `-m dvd` for PSP
   games. You can also use `-m auto`, to determine the format based on filesize
-  with a 750 MB threshold. But be careful, in my own testings DVD format did
-  not work to play with PCSX2 core in RetroArch.
+  with a 750 MB threshold. But be careful, in my own testings DVD format on
+  PS2 games did not work to play with PCSX2 core in RetroArch.
 
 ### Buggy GDI files causes to not process any other file too
 

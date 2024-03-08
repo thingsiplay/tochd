@@ -2,7 +2,9 @@
 
 Update history for [tochd](https://github.com/thingsiplay/tochd)
 
-## v0.11 - March 8, 2024
+## v0.12 - March 8, 2024
+
+Note: We are jumping over v0.11 and combine it with next version v0.12.
 
 - bug: counter for finish states like "Completed: 0" are disabled, when
   combining the options `-p` and `-s`, because counting these variables is not
