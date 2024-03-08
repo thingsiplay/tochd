@@ -599,12 +599,13 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         "-m",
         "--mode",
         metavar="FORMAT",
-        default="auto",
+        default="cd",
         choices=["cd", "dvd", "auto"],
         help=(
-            'disc format to create with "chdman", some modern systems might '
-            'require or perform better with "dvd", defaults to "auto" which determines'
-            "the format to use based on the ISO size (750 MB threshold)"
+            'disc format to create, available formats are "cd" or "dvd", '
+            'or use "auto" to determine format based on filesize (750 MB '
+            "threshold), some systems or emulators perform better with DVD "
+            'format, defaults to "cd"'
         ),
     )
 

@@ -8,9 +8,8 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
   combining the options `-p` and `-s`, because counting these variables is not
   thread safe at the moment
 - bug: cpu count was wrongly reported when using custom number for threads
-- new setting in option: `-m` now defaults to and has the setting `auto`, which
-  automatically determines what format to use "cd" or "dvd" by filesize with a
-  threshold of 750 MB (thanks AlexanderRavenheart
+- new setting in option: specify `-m auto` to determine "cd" or "dvd" format
+  based on filesize with a 750 MB threshold (thanks AlexanderRavenheart
   [#3](https://github.com/thingsiplay/tochd/pull/3))
 - changed: generation and handling of temporary folders refactored, now it's
   using proper builtin `tempfile` functionality instead custom logic, currently

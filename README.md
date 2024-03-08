@@ -235,9 +235,10 @@ threads with option `-t` (short for `--threads`).
   disc format is not CD. Especially the developers of PPSSPP emulator
   recommends converting with `chdman createdvd` instead `chdman createcd`,
   which are the internally used commands of `tochd`. `tochd` will use
-  `-m auto` which defaults to format based on file size. It defaults to `dvd`,
-  if file size exceeds 750 MB. But one can force the format with `-m dvd` or
-  `-m cd` and its recommended to use DVD format for PSP games always.
+  `-m cd` at default, so make sure to change this option to `-m dvd` for PSP
+  games. You can also use `-m auto`, to determine the format based on filesize
+  with a 750 MB threshold. But be careful, in my own testings DVD format did
+  not work to play with PCSX2 core in RetroArch.
 
 ### Buggy GDI files causes to not process any other file too
 
