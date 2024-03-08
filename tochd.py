@@ -128,7 +128,6 @@ class App:
             getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
         )
         self.mode: str = args.mode
-        self.fast: bool = args.fast
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
         self.list_examples: bool = args.list_examples
@@ -266,10 +265,6 @@ class App:
                 command.append("createcd")
             case "dvd":
                 command.append("createdvd")
-        if self.fast:
-            command.append("--compression")
-            # none=Uncompressed, cdlz=CD LZMA, cdzl=CD Deflate, cdfl=CD FLAC
-            command.append("none")
         if self.chd_processors:
             command.append("--numprocessors")
             command.append(str(self.chd_processors))
@@ -598,7 +593,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
     parser.add_argument(
         "-m",
         "--mode",
-        metavar="FORMAT",
+        metavar="DISC",
         default="cd",
         choices=["cd", "dvd", "auto"],
         help=(
@@ -606,17 +601,6 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
             'or use "auto" to determine format based on filesize (750 MB '
             "threshold), some systems or emulators perform better with DVD "
             'format, defaults to "cd"'
-        ),
-    )
-
-    parser.add_argument(
-        "-f",
-        "--fast",
-        default=False,
-        action="store_true",
-        help=(
-            'no compression for CHD files with "chdman", allows for quick '
-            "testing of file creation"
         ),
     )
 

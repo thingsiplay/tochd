@@ -19,6 +19,8 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
   finally cause `Ctrl+c` to delete temporary files and folders before exiting
   (thanks AlexanderRavenheart
   [#3](https://github.com/thingsiplay/tochd/pull/3))
+- removed: option `-f` and `--fast`, because nobody actually needs it, its an
+  artefact of early testings to quickly generate huge files
 - lot of internal code refactor for being more consistent styling and naming
   (thanks AlexanderRavenheart
   [#3](https://github.com/thingsiplay/tochd/pull/3))
