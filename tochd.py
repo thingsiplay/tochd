@@ -1,6 +1,7 @@
 #!/bin/env python3
 from __future__ import annotations
 
+from os import access
 import signal
 import atexit
 import sys
@@ -377,7 +378,7 @@ class App:
         """Find command in scripts dir, $PATH or get any custom fullpath."""
 
         path = Path(__file__).parent / command
-        if path.is_file():
+        if path.is_file() and os.access(path, os.X_OK):
             return path
 
         program: str | None = shutil.which(command)
