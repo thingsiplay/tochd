@@ -1,7 +1,7 @@
 #!/bin/env python3
 from __future__ import annotations
 
-from os import access
+import os
 import signal
 import atexit
 import sys
@@ -132,6 +132,11 @@ class App:
             getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
         )
         self.nuitka: bool = "__compiled__" in globals()
+        self.appimage: bool
+        try:
+            self.appimage = Path(os.environ["APPIMAGE"]).is_file()
+        except KeyError:
+            self.appimage = False
         self.mode: str = args.mode
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
@@ -730,7 +735,11 @@ def main(args: list[str] | None = None) -> int:
             compiled = " (pyinstaller)"
         else:
             compiled = ""
-        print(f"{app.name} v{app.version}{compiled}")
+        if app.appimage:
+            appimage = " [AppImage]"
+        else:
+            appimage = ""
+        print(f"{app.name} v{app.version}{compiled}{appimage}")
         return 0
     elif app.list_programs:
         for name, path in app.programs.items():
