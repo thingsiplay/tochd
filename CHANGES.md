@@ -6,6 +6,9 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
 
 - changed: search for executables such as `7z` and `chdman` programs in
   scripts own installed directory first, this makes it more portable
+- changed: temporary folders where archives are unpacked to will start with
+  dot again, so they are hidden at default, but only if no path is specified
+  with `--temp-dir`
 
 ## v0.12 - March 8, 2024
 

@@ -200,9 +200,11 @@ threads with option `-t` (short for `--threads`).
 
 - If you forcefully terminate the entire script while working, then unfinished
   files and especially temporary folders cannot be removed anymore. These files
-  and folders can take up huge amount of space! Make sure these files are
-  deleted. The regular `Ctrl+c` in the terminal to abort current job is _not_
-  a forced termination of script (even when option `-E` is in effect).
+  and folders can take up huge amount of space! Hidden subfolders with a
+  starting dot are created in the same directory as the input files, when no
+  path is given with option `--temp-dir` . Make sure these files are deleted.
+  The regular `Ctrl+c` in the terminal to abort current job is a controlled
+  termination, _not forced_ one (even with option `-E` in effect).
 
 ### Files and archives that need special preparation before converting
 

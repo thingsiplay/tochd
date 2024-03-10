@@ -46,9 +46,12 @@ class File:
             # TODO: add option to use default temp path (see description of dir for how a default directory is chosen:
             #  https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp)
             if temp_path:
-                self.tempdir = TemporaryDirectory(dir=temp_path)
+                self.tempdir = TemporaryDirectory(dir=temp_path, prefix="tochd_")
             else:
-                self.tempdir = TemporaryDirectory(dir=self.output.parent)
+                # NOTE: the leading dot for each jobs temp dir is only added if user do not specify a path
+                self.tempdir = TemporaryDirectory(
+                    dir=self.output.parent, prefix=".tochd_"
+                )
 
     def get_size(self, unit: str = "B"):
         exponents_map = {"B": 0, "KB": 1, "MB": 2, "GB": 3}
@@ -536,7 +539,9 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=None,
         help=(
             "destination path to an existing directory to extract archives to, "
-            "defaults to each input files' original folder"
+            "all temporary subfolders for each job are created and deleted "
+            "here, leading dot is added only if no path is given, defaults to "
+            "each input files' original folder"
         ),
     )
 
