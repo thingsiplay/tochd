@@ -131,6 +131,7 @@ class App:
         self.frozen: bool = bool(
             getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
         )
+        self.nuitka: bool = "__compiled__" in globals()
         self.mode: str = args.mode
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
@@ -723,11 +724,13 @@ def main(args: list[str] | None = None) -> int:
     signal.signal(signal.SIGINT, signal_sigint)
 
     if app.print_version:
-        if app.frozen:
-            frozen = " (pyinstaller)"
+        if app.nuitka:
+            compiled = " (nuitka)"
+        elif app.frozen:
+            compiled = " (pyinstaller)"
         else:
-            frozen = ""
-        print(f"{app.name} v{app.version}{frozen}")
+            compiled = ""
+        print(f"{app.name} v{app.version}{compiled}")
         return 0
     elif app.list_programs:
         for name, path in app.programs.items():
