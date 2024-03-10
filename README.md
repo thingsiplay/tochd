@@ -75,7 +75,8 @@ usage: tochd [-h] [--version]
              [--list-examples] [--list-formats] [--list-programs]
              [--7z CMD] [--chdman CMD]
              [-d DIR] [--temp-dir TEMP_DIR]
-             [-R] [-p] [-t NUM] [-c NUM] [-m FORMAT] [-q] [-n] [-s] [-E] [-X]
+             [-R] [-p] [-t NUM] [-c NUM] [-m DISC] [-H BYTES]
+             [-q] [-n] [-s] [-E] [-X]
              [-] [file ...]
 ```
 

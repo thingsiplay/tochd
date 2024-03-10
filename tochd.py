@@ -138,6 +138,7 @@ class App:
         except KeyError:
             self.appimage = False
         self.mode: str = args.mode
+        self.hunksize: int | None = args.hunksize
         self.list_programs: bool = args.list_programs
         self.list_formats: bool = args.list_formats
         self.list_examples: bool = args.list_examples
@@ -278,6 +279,9 @@ class App:
         if self.chd_processors:
             command.append("--numprocessors")
             command.append(str(self.chd_processors))
+        if self.hunksize:
+            command.append("--hunksize")
+            command.append(str(self.hunksize))
         command.append("--input")
         command.append(file.input.as_posix())
         command.append("--output")
@@ -617,6 +621,19 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
             'or use "auto" to determine format based on filesize (750 MB '
             "threshold), some systems or emulators perform better with DVD "
             'format, defaults to "cd"'
+        ),
+    )
+
+    parser.add_argument(
+        "-H",
+        "--hunksize",
+        metavar="BYTES",
+        type=int,
+        help=(
+            "size of each hunk in bytes for conversion with chdman, normally "
+            "this setting is not needed to be set, but for special cases it "
+            "can be specified to overwrite default values of chdman, example "
+            'values are "2048" and "4096"'
         ),
     )
 

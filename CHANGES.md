@@ -4,6 +4,9 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
 
 ## Next
 
+- new: option `-H`, `--hunksize` to specify the exact size of hunks in bytes
+  used with chdman, only needed in special cases,
+  [#6](https://github.com/thingsiplay/tochd/issues/6)
 - changed: search for executables such as `7z` and `chdman` programs in
   scripts own installed directory first, this makes it more portable
 - changed: temporary folders where archives are unpacked to will start with
