@@ -4,6 +4,8 @@ Update history for [tochd](https://github.com/thingsiplay/tochd)
 
 ## Next
 
+## v0.13 - March 12, 2024
+
 - new: option `-H`, `--hunksize` to specify the exact size of hunks in bytes
   used with chdman, only needed in special cases,
   [#6](https://github.com/thingsiplay/tochd/issues/6)
