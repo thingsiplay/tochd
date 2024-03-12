@@ -35,8 +35,9 @@ class File:
         """Constructs File attributes."""
 
         self.input: Path = input_path
+        self.input = fullpath(self.input.as_posix())
         if dir_path:
-            output = dir_path.joinpath(input_path.name)
+            output = fullpath(dir_path.joinpath(input_path.name).as_posix())
         else:
             output = input_path
         self.output: Path = output.with_suffix(".chd")
@@ -127,15 +128,26 @@ class App:
     def __init__(self, args: Argparse) -> None:
         """Construct application attributes used as settings."""
 
+        cwd = os.getcwd()
+        owd = cwd
+
         self.print_version: bool = args.version
         self.frozen: bool = bool(
             getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
         )
         self.nuitka: bool = "__compiled__" in globals()
         self.appimage: bool
-        try:
-            self.appimage = Path(os.environ["APPIMAGE"]).is_file()
-        except KeyError:
+        if "APPIMAGE" in os.environ:
+            # NOTE: AppImage is changing current working directory and breaks the
+            # script and its calling programs. We need to change it to what
+            # was it before AppImage was called. But this would break the AppImage
+            # later too, when it is looking up the internal libraries. Therefore
+            # the current working directory is only changed temporarily until all
+            # filenames and paths are set.
+            owd = os.environ["OWD"]
+            os.chdir(owd)
+            self.appimage = True
+        else:
             self.appimage = False
         self.mode: str = args.mode
         self.hunksize: int | None = args.hunksize
@@ -166,6 +178,10 @@ class App:
         self.stats_skipped: int = 0
         self.stats_failed: int = 0
         self.stats_completed: int = 0
+
+        if self.appimage:
+            os.environ["OWD"] = cwd
+            os.chdir(cwd)
 
     def get_files(self, files: list[str]) -> list:
         """Filter and convert list of strings to list of supported Files."""
@@ -390,7 +406,11 @@ class App:
     def which(cls, command: str) -> Path:
         """Find command in scripts dir, $PATH or get any custom fullpath."""
 
-        path = Path(__file__).parent / command
+        if "__compiled__" in globals():
+            path = Path(sys.argv[0]).parent / command
+            path = path.resolve()
+        else:
+            path = Path(__file__).parent / command
         if path.is_file() and os.access(path, os.X_OK):
             return path
 
