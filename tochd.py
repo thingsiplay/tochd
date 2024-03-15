@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import os
@@ -464,7 +464,10 @@ def fullpath(file: str) -> Path:
 def available_cpu_count() -> int:
     """Get actual number of available logical CPU count."""
 
-    count = len(os.sched_getaffinity(0))
+    if hasattr(os, 'sched_getaffinity'):
+        count = len(os.sched_getaffinity(0))
+    else:
+        count = os.cpu_count()
     if count == 0 or count is None:
         return 0
     else:
