@@ -6,6 +6,8 @@ Convert game ISO and archives to CD/DVD CHD for emulation.
 - Website: [tochd-converter](https://thingsiplay.game.blog/tochd-converter)
 - Source: [Github](https://github.com/thingsiplay/tochd)
 - Releases: [Github Releases](https://github.com/thingsiplay/tochd/releases)
+- Issue Tracker: [Github Issues](https://github.com/thingsiplay/tochd/issues)
+- Forum: [Github Discussions](https://github.com/thingsiplay/tochd/discussions)
 - Update Notes: [CHANGES](CHANGES.md)
 - License: [MIT License](LICENSE)
 
