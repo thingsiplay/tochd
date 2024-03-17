@@ -77,7 +77,7 @@ Note: We are jumping over v0.11 and combine it with next version v0.12.
 
 - changed: when multithreading with option `-p`, the stdout and statistics from
   invoked `7z` and `chdman` commands are no longer hidden anymore, only the
-  progress bar and stderr stream are hidden, use option `-q` to supress any
+  progress bar and stderr stream are hidden, use option `-q` to suppress any
   output from these commands (how it worked previously)
 
 ## v0.6 - March 25, 2022 - Complete rewrite
@@ -90,7 +90,7 @@ Note: We are jumping over v0.11 and combine it with next version v0.12.
   current job process and continue with the next one in list
 - changed: more reliable in removing temporary folders and unfinished files,
   even with multithreading enabled and on `Ctrl+c` signal
-- new: option `-E` to change behavior of `Ctrl+c` to immadiately stop execution
+- new: option `-E` to change behavior of `Ctrl+c` to immediately stop execution
   of entire script, which may leave temporary folders and unfinished files on
   the system
 

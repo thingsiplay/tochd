@@ -226,7 +226,7 @@ threads with option `-t` (short for `--threads`).
 ### Automatic renaming output files based on archive filename
 
 - Sometimes .cue or .iso files found in an archive have a different name than the
-  archive filename itself. Sometimes one of them lack important informations and
+  archive filename itself. Sometimes one of them lack important information and
   you need to determine which of them is "correct". In example translations could
   have important information encoded in the filename of the .cue, which would be
   lost, as the .CHD file is automatically renamed to match the .zip or .7z

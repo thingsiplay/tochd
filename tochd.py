@@ -666,7 +666,7 @@ def parse_arguments(args: list[str] | None = None) -> Argparse:
         default=False,
         action="store_true",
         help=(
-            "supress output from external programs, print job messages "
+            "suppress output from external programs, print job messages "
             "only, automate user input when possible"
         ),
     )
